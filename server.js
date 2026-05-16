@@ -821,6 +821,7 @@ class MockAsrProvider {
     this.ready = false;
     this.chunkCount = 0;
     this.itemIndex = 0;
+    this.demoTimer = null;
     this.script = [
       {
         draft: [
@@ -858,6 +859,14 @@ class MockAsrProvider {
       status: "connected",
       message: `${this.config.label} connected. Demo transcript mode is active.`
     });
+
+    this.demoTimer = setInterval(() => {
+      try {
+        this.appendAudio();
+      } catch {
+        // Ignore demo timer errors during shutdown races.
+      }
+    }, 1200);
   }
 
   appendAudio() {
@@ -889,6 +898,11 @@ class MockAsrProvider {
   }
 
   stopSession() {
+    if (this.demoTimer) {
+      clearInterval(this.demoTimer);
+      this.demoTimer = null;
+    }
+
     if (this.ready && this.onStatus) {
       this.onStatus({
         type: "status",
