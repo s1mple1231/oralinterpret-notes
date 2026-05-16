@@ -348,6 +348,11 @@ function sendSessionEvent(session, payload) {
       message: payload.message || ""
     };
   }
+
+  if (payload.type === "error") {
+    console.error(`[session:${session.id}] ${payload.message || "Unknown session error."}`);
+  }
+
   const data = `data: ${JSON.stringify(payload)}\n\n`;
   for (const client of session.sseClients) {
     client.write(data);
@@ -1181,6 +1186,12 @@ async function generateNotesForItem(session, itemId, status) {
       status,
       lines
     });
+  } catch (error) {
+    sendSessionEvent(session, {
+      type: "error",
+      message: `Notes generation failed: ${error.message || "Unknown provider error."}`
+    });
+    throw error;
   } finally {
     session.generatingForItem.delete(itemId);
   }
