@@ -163,6 +163,7 @@ Useful files:
 - `deployment-checklist-v1.md`
 - `cloudbase-migration-plan-v1.md`
 - `edgeone-cloudbase-deploy-plan-v1.md`
+- `Dockerfile`
 
 ## ModelScope Notes Quick Test
 
