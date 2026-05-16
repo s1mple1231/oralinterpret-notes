@@ -57,6 +57,9 @@ const QWEN_ASR_BASE_URL =
   process.env.QWEN_ASR_BASE_URL || "wss://dashscope.aliyuncs.com/api-ws/v1/realtime";
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 const MODELSCOPE_API_KEY = process.env.MODELSCOPE_API_KEY || "";
+const MODELSCOPE_ENABLE_THINKING =
+  String(process.env.MODELSCOPE_ENABLE_THINKING || "false").trim().toLowerCase() === "true";
+const MODELSCOPE_THINKING_BUDGET = Number(process.env.MODELSCOPE_THINKING_BUDGET || 0);
 
 const providerCatalog = {
   asr: {
@@ -127,7 +130,13 @@ const providerCatalog = {
         process.env.MODELSCOPE_BASE_URL ||
         "https://api-inference.modelscope.cn/v1",
       model: process.env.MODELSCOPE_MODEL || "Qwen/Qwen3-32B",
-      apiKey: MODELSCOPE_API_KEY
+      apiKey: MODELSCOPE_API_KEY,
+      extraBody: {
+        enable_thinking: MODELSCOPE_ENABLE_THINKING,
+        ...(MODELSCOPE_THINKING_BUDGET > 0
+          ? { thinking_budget: MODELSCOPE_THINKING_BUDGET }
+          : {})
+      }
     }
   }
 };
@@ -791,33 +800,36 @@ class OpenAICompatibleNotesProvider {
       "Output JSON only."
     ].join("\n");
 
+    const requestBody = {
+      model: this.config.model,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You generate interpreter-style notes. Return valid JSON only and obey the schema."
+        },
+        {
+          role: "user",
+          content: userPrompt
+        }
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "interpreting_notes_stream",
+          strict: true,
+          schema: outputSchema
+        }
+      },
+      ...(this.config.extraBody ? { extra_body: this.config.extraBody } : {})
+    };
+
     const response = await callJsonApi(
       this.config.baseUrl,
       "/chat/completions",
       this.config.apiKey,
-      {
-        model: this.config.model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You generate interpreter-style notes. Return valid JSON only and obey the schema."
-          },
-          {
-            role: "user",
-            content: userPrompt
-          }
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "interpreting_notes_stream",
-            strict: true,
-            schema: outputSchema
-          }
-        }
-      }
+      requestBody
     );
 
     const content = response?.choices?.[0]?.message?.content;

@@ -175,7 +175,10 @@ NOTES_PROVIDER=modelscope
 MODELSCOPE_API_KEY=your_modelscope_token
 MODELSCOPE_BASE_URL=https://api-inference.modelscope.cn/v1
 MODELSCOPE_MODEL=Qwen/Qwen3-32B
+MODELSCOPE_ENABLE_THINKING=false
 TRANSCRIPTION_LANGUAGE=zh
 ```
 
 This keeps ASR in mock mode and swaps only the note generation layer, which is the safest first integration path.
+
+For interpreter-style notes, keeping `MODELSCOPE_ENABLE_THINKING=false` is recommended so the model stays faster, more compact, and less likely to over-explain.
