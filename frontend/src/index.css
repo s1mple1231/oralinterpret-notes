@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #f6f7f3;
+  --color-foreground: #111714;
+  --color-card: #fbfbf8;
+  --color-card-foreground: #111714;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #111714;
+  --color-primary: #1d6c44;
+  --color-primary-foreground: #f8fff8;
+  --color-secondary: #edf3ec;
+  --color-secondary-foreground: #264134;
+  --color-muted: #eff3ef;
+  --color-muted-foreground: #5c6d64;
+  --color-accent: #e8efe8;
+  --color-accent-foreground: #16221b;
+  --color-border: rgba(17, 23, 20, 0.08);
+  --color-input: rgba(17, 23, 20, 0.08);
+  --color-ring: rgba(29, 108, 68, 0.35);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-family: "Inter", "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+    background-image:
+      radial-gradient(circle at top left, rgba(29, 108, 68, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(160, 122, 78, 0.14), transparent 24%),
+      linear-gradient(180deg, #f7f8f4 0%, #eef1ec 100%);
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  ::selection {
+    background: rgba(29, 108, 68, 0.18);
+  }
+}
+
+@layer utilities {
+  .glass-grid {
+    background-image:
+      linear-gradient(rgba(17, 23, 20, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(17, 23, 20, 0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}

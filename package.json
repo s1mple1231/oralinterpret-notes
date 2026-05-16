@@ -1,0 +1,14 @@
+{
+  "name": "interpreting-notes-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.8.6",
+    "ws": "^8.18.3"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  }
+}

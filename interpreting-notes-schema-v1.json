@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/interpreting-notes-schema-v1.json",
+  "title": "Interpreting Notes Stream Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lines"
+  ],
+  "properties": {
+    "lines": {
+      "type": "array",
+      "description": "Incremental note lines emitted for the current transcript chunk.",
+      "items": {
+        "$ref": "#/$defs/line"
+      }
+    }
+  },
+  "$defs": {
+    "line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "status",
+        "indent",
+        "semantic_type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique line identifier within the session."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Interpreter-style note text, usually one idea per line."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "stable",
+            "revised"
+          ]
+        },
+        "indent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Visual hierarchy level for rendering."
+        },
+        "semantic_type": {
+          "type": "string",
+          "enum": [
+            "claim",
+            "support",
+            "contrast",
+            "condition",
+            "cause",
+            "result",
+            "number_anchor",
+            "question",
+            "stance",
+            "purpose"
+          ]
+        },
+        "speaker": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_span_ms": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "items": false,
+          "description": "Inclusive start and end timestamps of the source span in milliseconds."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "revision_of": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Prior line id being revised, if any."
+        }
+      }
+    }
+  }
+}

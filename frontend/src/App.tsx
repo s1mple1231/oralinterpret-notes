@@ -1,0 +1,669 @@
+import { useEffect, useRef, useState } from "react"
+import {
+  Activity,
+  AudioLines,
+  Bolt,
+  CircleDot,
+  Gauge,
+  Languages,
+  NotebookText,
+  Radio,
+  Sparkles,
+} from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Separator } from "@/components/ui/separator"
+
+type ProviderOption = {
+  name: string
+  label: string
+  implemented: boolean
+  configured?: boolean
+  sampleRate?: number | null
+}
+
+type ProviderSummary = {
+  active: {
+    asr: string
+    notes: string
+  }
+  catalog: {
+    asr: ProviderOption[]
+    notes: ProviderOption[]
+  }
+}
+
+type TranscriptItem = {
+  itemId: string
+  order: number
+  status: string
+  text?: string
+  delta?: string
+  final?: string
+}
+
+type NoteLine = {
+  id: string
+  text: string
+  indent: number
+}
+
+type NotesItem = {
+  itemId: string
+  order: number
+  status: string
+  lines: NoteLine[]
+}
+
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "")
+
+function apiUrl(pathname: string) {
+  return API_BASE_URL ? `${API_BASE_URL}${pathname}` : pathname
+}
+
+function floatToInt16(float32Array: Float32Array) {
+  const int16 = new Int16Array(float32Array.length)
+  for (let i = 0; i < float32Array.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, float32Array[i]))
+    int16[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff
+  }
+  return int16
+}
+
+function downsampleToRate(input: Float32Array, inputRate: number, targetRate: number) {
+  if (inputRate === targetRate) {
+    return floatToInt16(input)
+  }
+
+  const ratio = inputRate / targetRate
+  const length = Math.round(input.length / ratio)
+  const result = new Float32Array(length)
+  let offsetResult = 0
+  let offsetBuffer = 0
+
+  while (offsetResult < result.length) {
+    const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio)
+    let accum = 0
+    let count = 0
+
+    for (let i = offsetBuffer; i < nextOffsetBuffer && i < input.length; i += 1) {
+      accum += input[i]
+      count += 1
+    }
+
+    result[offsetResult] = count ? accum / count : 0
+    offsetResult += 1
+    offsetBuffer = nextOffsetBuffer
+  }
+
+  return floatToInt16(result)
+}
+
+function int16ChunksToBase64(chunks: Int16Array[]) {
+  let totalLength = 0
+  for (const chunk of chunks) {
+    totalLength += chunk.length
+  }
+
+  const merged = new Int16Array(totalLength)
+  let offset = 0
+  for (const chunk of chunks) {
+    merged.set(chunk, offset)
+    offset += chunk.length
+  }
+
+  const bytes = new Uint8Array(merged.buffer)
+  let binary = ""
+  const step = 0x8000
+  for (let i = 0; i < bytes.length; i += step) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + step))
+  }
+  return btoa(binary)
+}
+
+export default function App() {
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [language, setLanguage] = useState("zh")
+  const [status, setStatus] = useState("Idle")
+  const [targetSampleRate, setTargetSampleRate] = useState(16000)
+  const [providers, setProviders] = useState<ProviderSummary | null>(null)
+  const [selectedAsr, setSelectedAsr] = useState("mock")
+  const [selectedNotes, setSelectedNotes] = useState("mock")
+  const [transcripts, setTranscripts] = useState<Map<string, TranscriptItem>>(new Map())
+  const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
+  const [isListening, setIsListening] = useState(false)
+
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const processorRef = useRef<ScriptProcessorNode | null>(null)
+  const flushTimerRef = useRef<number | null>(null)
+  const statePollTimerRef = useRef<number | null>(null)
+  const sampleBuffersRef = useRef<Int16Array[]>([])
+
+  function syncProviderSelections(summary: ProviderSummary) {
+    setProviders(summary)
+    setSelectedAsr(summary.active.asr)
+    setSelectedNotes(summary.active.notes)
+  }
+
+  function applySessionSnapshot(payload: {
+    sessionId?: string | null
+    audio?: { sampleRate?: number }
+    providers?: ProviderSummary
+    transcript?: TranscriptItem[]
+    notes?: NotesItem[]
+  }) {
+    setSessionId(payload.sessionId || null)
+    setTargetSampleRate(payload.audio?.sampleRate || 16000)
+    if (payload.providers) {
+      syncProviderSelections(payload.providers)
+    }
+
+    const transcriptMap = new Map<string, TranscriptItem>()
+    for (const item of payload.transcript ?? []) {
+      transcriptMap.set(item.itemId, {
+        itemId: item.itemId,
+        order: item.order,
+        status: item.status,
+        text: item.final || item.delta || item.text || "",
+      })
+    }
+    setTranscripts(transcriptMap)
+
+    const noteMap = new Map<string, NotesItem>()
+    for (const item of payload.notes ?? []) {
+      noteMap.set(item.itemId, {
+        itemId: item.itemId,
+        order: transcriptMap.get(item.itemId)?.order || 0,
+        status: item.status,
+        lines: item.lines || [],
+      })
+    }
+    setNotes(noteMap)
+  }
+
+  async function flushAudio() {
+    if (!sampleBuffersRef.current.length || !sessionId) {
+      return
+    }
+
+    const audio = int16ChunksToBase64(sampleBuffersRef.current)
+    sampleBuffersRef.current = []
+
+    await fetch(apiUrl("/api/session/audio"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId,
+        audio,
+      }),
+    })
+  }
+
+  function stopStatePolling() {
+    if (statePollTimerRef.current) {
+      window.clearInterval(statePollTimerRef.current)
+      statePollTimerRef.current = null
+    }
+  }
+
+  async function pollSessionState(nextSessionId: string) {
+    const response = await fetch(
+      `${apiUrl("/api/session/state")}?sessionId=${encodeURIComponent(nextSessionId)}`,
+    )
+    const payload = await response.json()
+    if (!response.ok) {
+      throw new Error(payload.error || "Failed to fetch session state.")
+    }
+
+    applySessionSnapshot(payload)
+  }
+
+  function startStatePolling(nextSessionId: string | null) {
+    stopStatePolling()
+    if (!nextSessionId) {
+      return
+    }
+
+    void pollSessionState(nextSessionId).catch((error: Error) => setStatus(error.message))
+
+    statePollTimerRef.current = window.setInterval(() => {
+      void pollSessionState(nextSessionId).catch((error: Error) => setStatus(error.message))
+    }, 1000)
+  }
+
+  async function stopCapture() {
+    if (flushTimerRef.current) {
+      window.clearInterval(flushTimerRef.current)
+      flushTimerRef.current = null
+    }
+
+    await flushAudio().catch(() => {})
+
+    processorRef.current?.disconnect()
+    if (processorRef.current) {
+      processorRef.current.onaudioprocess = null
+    }
+    processorRef.current = null
+
+    sourceRef.current?.disconnect()
+    sourceRef.current = null
+
+    if (audioContextRef.current) {
+      await audioContextRef.current.close()
+    }
+    audioContextRef.current = null
+
+    if (mediaStreamRef.current) {
+      for (const track of mediaStreamRef.current.getTracks()) {
+        track.stop()
+      }
+    }
+    mediaStreamRef.current = null
+    sampleBuffersRef.current = []
+
+    if (sessionId) {
+      await fetch(apiUrl("/api/session/stop"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sessionId }),
+      }).catch(() => {})
+    }
+
+    setSessionId(null)
+    setIsListening(false)
+    setStatus("Idle")
+    stopStatePolling()
+    setTranscripts(new Map())
+    setNotes(new Map())
+  }
+
+  async function startCapture() {
+    const response = await fetch(apiUrl("/api/session/start"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        language,
+        asrProvider: selectedAsr,
+        notesProvider: selectedNotes,
+      }),
+    })
+
+    const payload = await response.json()
+    if (!response.ok) {
+      throw new Error(payload.error || "Failed to start session.")
+    }
+
+    setSessionId(payload.sessionId)
+    setTargetSampleRate(payload.audio?.sampleRate || 16000)
+    if (payload.providers) {
+      syncProviderSelections(payload.providers)
+    }
+    startStatePolling(payload.sessionId)
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    })
+
+    const audioContext = new AudioContext()
+    const source = audioContext.createMediaStreamSource(stream)
+    const processor = audioContext.createScriptProcessor(4096, 1, 1)
+
+    processor.onaudioprocess = (event) => {
+      const channel = event.inputBuffer.getChannelData(0)
+      sampleBuffersRef.current.push(
+        downsampleToRate(channel, audioContext.sampleRate, targetSampleRate),
+      )
+    }
+
+    source.connect(processor)
+    processor.connect(audioContext.destination)
+
+    mediaStreamRef.current = stream
+    audioContextRef.current = audioContext
+    sourceRef.current = source
+    processorRef.current = processor
+    flushTimerRef.current = window.setInterval(() => {
+      flushAudio().catch((error: Error) => setStatus(error.message))
+    }, 300)
+
+    setIsListening(true)
+    setStatus("Listening")
+  }
+
+  useEffect(() => {
+    fetch(apiUrl("/api/providers"))
+      .then((response) => response.json())
+      .then((payload) => {
+        if (payload.providers) {
+          syncProviderSelections(payload.providers)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      stopStatePolling()
+      void stopCapture()
+    }
+  }, [])
+
+  const transcriptItems = Array.from(transcripts.values()).sort((a, b) => a.order - b.order)
+  const noteItems = Array.from(notes.values()).sort((a, b) => a.order - b.order)
+
+  return (
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="glass-grid absolute inset-0 opacity-45" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-8">
+        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+          <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
+            <CardHeader className="gap-5 pb-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="bg-primary/10 text-primary">shadcn/ui style</Badge>
+                <Badge>web deploy ready</Badge>
+                <Badge className="bg-secondary/90 text-secondary-foreground">two-stage notes</Badge>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                <div className="space-y-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
+                    Interpreting Console
+                  </p>
+                  <h1 className="max-w-3xl text-4xl font-semibold leading-[0.96] tracking-tight text-balance md:text-6xl">
+                    Real-time interpreter notes that feel precise, calm, and usable.
+                  </h1>
+                  <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+                    A minimal broadcast console for live transcript flow and interpreter-style note
+                    compression. Built around session isolation, low-latency updates, and provider
+                    switching.
+                  </p>
+                </div>
+
+                <div className="grid gap-3">
+                  <Card className="border-border/70 bg-white/70">
+                    <CardContent className="grid gap-4 p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                            Session
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-foreground">{status}</p>
+                        </div>
+                        <div className="rounded-full bg-primary/10 p-2 text-primary">
+                          <CircleDot className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <Metric icon={Radio} label="ASR" value={selectedAsr} />
+                        <Metric icon={NotebookText} label="Notes" value={selectedNotes} />
+                        <Metric icon={Gauge} label="Rate" value={`${targetSampleRate / 1000}k`} />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <MiniTile icon={AudioLines} title="Streaming" value="live" />
+                    <MiniTile icon={Bolt} title="Cadence" value="300ms" />
+                    <MiniTile icon={Sparkles} title="Mode" value="elegant" />
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white">Control Surface</CardTitle>
+              <CardDescription className="text-white/70">
+                Switch providers, set language hints, and drive the listening session from one
+                compact panel.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <ControlField
+                label="Language hint"
+                icon={Languages}
+                input={
+                  <Input
+                    value={language}
+                    onChange={(event) => setLanguage(event.target.value)}
+                    placeholder="zh / en / ja"
+                    className="border-white/10 bg-white/5 text-white placeholder:text-white/35"
+                  />
+                }
+              />
+              <ControlField
+                label="ASR provider"
+                icon={Activity}
+                input={
+                  <NativeSelect
+                    value={selectedAsr}
+                    onChange={(event) => setSelectedAsr(event.target.value)}
+                    shellClassName="border-white/10 bg-white/5"
+                    className="text-white"
+                  >
+                    {providers?.catalog.asr.map((provider) => (
+                      <option
+                        key={provider.name}
+                        value={provider.name}
+                        disabled={!provider.implemented}
+                      >
+                        {provider.label}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                }
+              />
+              <ControlField
+                label="Notes provider"
+                icon={NotebookText}
+                input={
+                  <NativeSelect
+                    value={selectedNotes}
+                    onChange={(event) => setSelectedNotes(event.target.value)}
+                    shellClassName="border-white/10 bg-white/5"
+                    className="text-white"
+                  >
+                    {providers?.catalog.notes.map((provider) => (
+                      <option
+                        key={provider.name}
+                        value={provider.name}
+                        disabled={!provider.implemented || provider.configured === false}
+                      >
+                        {provider.label}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                }
+              />
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
+                  Start Listening
+                </Button>
+                <Button
+                  onClick={() => void stopCapture()}
+                  disabled={!isListening}
+                  variant="outline"
+                  size="lg"
+                  className="border-white/12 bg-white/0 text-white hover:bg-white/8"
+                >
+                  Stop
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="mt-5 grid flex-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+          <StreamPane
+            title="Transcript Stream"
+            description="The raw listening layer. Keep this visible for trust and debugging."
+            tag="ASR"
+            items={transcriptItems.map((item) => ({
+              key: item.itemId,
+              status: item.status,
+              title: item.itemId,
+              body: item.text || "",
+            }))}
+          />
+
+          <StreamPane
+            title="Interpreter Notes"
+            description="Compressed note lines optimized for recall rather than polished prose."
+            tag="NOTES"
+            noteMode
+            items={noteItems.map((item) => ({
+              key: item.itemId,
+              status: item.status,
+              title: item.itemId,
+              body: item.lines.map((line) => `${"  ".repeat(line.indent || 0)}${line.text}`).join("\n"),
+            }))}
+          />
+        </section>
+      </div>
+    </div>
+  )
+}
+
+function Metric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Radio
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background/70 p-3">
+      <div className="mb-2 flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-3.5 w-3.5" />
+        <span className="text-[11px] uppercase tracking-[0.24em]">{label}</span>
+      </div>
+      <p className="truncate text-sm font-medium text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function MiniTile({
+  icon: Icon,
+  title,
+  value,
+}: {
+  icon: typeof AudioLines
+  title: string
+  value: string
+}) {
+  return (
+    <Card className="border-border/70 bg-white/72">
+      <CardContent className="p-4">
+        <div className="mb-2 inline-flex rounded-full bg-primary/10 p-2 text-primary">
+          <Icon className="h-3.5 w-3.5" />
+        </div>
+        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{title}</p>
+        <p className="mt-1 text-sm font-semibold">{value}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ControlField({
+  label,
+  icon: Icon,
+  input,
+}: {
+  label: string
+  icon: typeof Languages
+  input: React.ReactNode
+}) {
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center gap-2 text-sm text-white/70">
+        <Icon className="h-4 w-4" />
+        <span>{label}</span>
+      </div>
+      {input}
+    </div>
+  )
+}
+
+function StreamPane({
+  title,
+  description,
+  tag,
+  items,
+  noteMode = false,
+}: {
+  title: string
+  description: string
+  tag: string
+  items: { key: string; status: string; title: string; body: string }[]
+  noteMode?: boolean
+}) {
+  return (
+    <Card className="flex min-h-[42rem] flex-col">
+      <CardHeader className="pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription className="mt-1 max-w-xl">{description}</CardDescription>
+          </div>
+          <Badge>{tag}</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <div className="grid gap-3">
+          {items.length ? (
+            items.map((item) => (
+              <article
+                key={item.key}
+                className={`rounded-[22px] border border-border/80 bg-background/80 p-4 shadow-sm ${
+                  item.status === "draft" ? "border-dashed" : ""
+                }`}
+              >
+                <div className="mb-3 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                  <span>{item.title}</span>
+                  <span>{item.status}</span>
+                </div>
+                <pre
+                  className={`whitespace-pre-wrap text-sm leading-7 ${
+                    noteMode
+                      ? "font-mono text-[13px] leading-6 tracking-tight text-foreground"
+                      : "font-sans text-[14px] text-foreground"
+                  }`}
+                >
+                  {item.body}
+                </pre>
+              </article>
+            ))
+          ) : (
+            <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
+              No events yet. Start a session to see transcript and note flow.
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

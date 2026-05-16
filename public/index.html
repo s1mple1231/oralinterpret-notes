@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realtime Interpreting Notes Prototype</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Realtime Interpreting Notes</p>
+        <h1>Live Interpreter-Style Notes</h1>
+        <p class="subtitle">
+          Transcript updates appear on the left. Interpreter-style notes appear on the right.
+          This build focuses on latency, compression, and revision flow.
+        </p>
+      </section>
+
+      <section class="controls card">
+        <div class="control-row">
+          <label for="language">Language Hint</label>
+          <input id="language" value="zh" placeholder="zh / en / ja" />
+        </div>
+        <div class="control-row">
+          <label for="asrProvider">ASR Provider</label>
+          <select id="asrProvider"></select>
+        </div>
+        <div class="control-row">
+          <label for="notesProvider">Notes Provider</label>
+          <select id="notesProvider"></select>
+        </div>
+        <div class="button-row">
+          <button id="startButton" class="primary">Start</button>
+          <button id="stopButton" class="ghost" disabled>Stop</button>
+        </div>
+        <p id="statusText" class="status">Idle</p>
+      </section>
+
+      <section class="panes">
+        <article class="pane card">
+          <div class="pane-head">
+            <h2>Transcript</h2>
+            <span class="pane-tag">ASR stream</span>
+          </div>
+          <div id="transcriptList" class="stream-list"></div>
+        </article>
+
+        <article class="pane card notes-pane">
+          <div class="pane-head">
+            <h2>Interpreting Notes</h2>
+            <span class="pane-tag">Interpreter style</span>
+          </div>
+          <div id="notesList" class="stream-list notes-list"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/config.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
