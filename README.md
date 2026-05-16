@@ -60,6 +60,7 @@ http://localhost:3000
 - lightweight multi-session support exists, but there is no auth yet
 - ASR adapters are implemented for `openai` and `qwen`
 - notes adapters can switch between `openai`, `qwen`, and `deepseek` using OpenAI-compatible chat completion endpoints
+- notes adapters can switch between `openai`, `qwen`, `deepseek`, and `modelscope` using OpenAI-compatible chat completion endpoints
 - transcript ordering is best-effort
 - draft notes are regenerated per chunk rather than true line-level patching
 - browser audio capture uses `ScriptProcessorNode`, which is fine for a prototype but not ideal for production
@@ -162,3 +163,18 @@ Useful files:
 - `deployment-checklist-v1.md`
 - `cloudbase-migration-plan-v1.md`
 - `edgeone-cloudbase-deploy-plan-v1.md`
+
+## ModelScope Notes Quick Test
+
+If you want to test free ModelScope API-Inference on the notes layer first:
+
+```env
+ASR_PROVIDER=mock
+NOTES_PROVIDER=modelscope
+MODELSCOPE_API_KEY=your_modelscope_token
+MODELSCOPE_BASE_URL=https://api-inference.modelscope.cn/v1
+MODELSCOPE_MODEL=Qwen/Qwen3-32B
+TRANSCRIPTION_LANGUAGE=zh
+```
+
+This keeps ASR in mock mode and swaps only the note generation layer, which is the safest first integration path.

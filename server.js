@@ -56,6 +56,7 @@ const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
 const QWEN_ASR_BASE_URL =
   process.env.QWEN_ASR_BASE_URL || "wss://dashscope.aliyuncs.com/api-ws/v1/realtime";
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
+const MODELSCOPE_API_KEY = process.env.MODELSCOPE_API_KEY || "";
 
 const providerCatalog = {
   asr: {
@@ -117,6 +118,16 @@ const providerCatalog = {
       baseUrl: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com/v1",
       model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
       apiKey: DEEPSEEK_API_KEY
+    },
+    modelscope: {
+      label: "ModelScope Notes",
+      kind: "text_generation",
+      implemented: true,
+      baseUrl:
+        process.env.MODELSCOPE_BASE_URL ||
+        "https://api-inference.modelscope.cn/v1",
+      model: process.env.MODELSCOPE_MODEL || "Qwen/Qwen3-32B",
+      apiKey: MODELSCOPE_API_KEY
     }
   }
 };
@@ -150,6 +161,11 @@ function getStartupChecks() {
       key: "openai_api_key",
       ok: Boolean(OPENAI_API_KEY),
       message: "OPENAI_API_KEY is required only when using OpenAI ASR or OpenAI Notes."
+    },
+    {
+      key: "modelscope_api_key",
+      ok: Boolean(MODELSCOPE_API_KEY),
+      message: "MODELSCOPE_API_KEY is required only when using ModelScope Notes."
     },
     {
       key: "session_store",
