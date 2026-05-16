@@ -832,8 +832,23 @@ class OpenAICompatibleNotesProvider {
       requestBody
     );
 
-    const content = response?.choices?.[0]?.message?.content;
-    if (typeof content !== "string" || !content.trim()) {
+    const rawContent = response?.choices?.[0]?.message?.content;
+    const content =
+      typeof rawContent === "string"
+        ? rawContent
+        : Array.isArray(rawContent)
+          ? rawContent
+              .map((part) =>
+                typeof part === "string"
+                  ? part
+                  : typeof part?.text === "string"
+                    ? part.text
+                    : ""
+              )
+              .join("")
+          : "";
+
+    if (!content.trim()) {
       throw new Error(`${this.config.label} returned empty note content.`);
     }
 
@@ -908,18 +923,32 @@ class MockAsrProvider {
     const draftIndex = Math.min(active.draft.length - 1, Math.floor((this.chunkCount - 1) / 3));
     const draftText = active.draft.slice(0, draftIndex + 1).join(" ");
 
-    this.onEvent({
-      type: "conversation.item.input_audio_transcription.text",
-      item_id: itemId,
-      text: draftText,
-      stash: ""
+    Promise.resolve(
+      this.onEvent({
+        type: "conversation.item.input_audio_transcription.text",
+        item_id: itemId,
+        text: draftText,
+        stash: ""
+      })
+    ).catch((error) => {
+      this.onStatus?.({
+        type: "error",
+        message: error.message || "Mock ASR failed to emit draft transcript."
+      });
     });
 
     if (this.chunkCount % 6 === 0) {
-      this.onEvent({
-        type: "conversation.item.input_audio_transcription.completed",
-        item_id: itemId,
-        transcript: active.final
+      Promise.resolve(
+        this.onEvent({
+          type: "conversation.item.input_audio_transcription.completed",
+          item_id: itemId,
+          transcript: active.final
+        })
+      ).catch((error) => {
+        this.onStatus?.({
+          type: "error",
+          message: error.message || "Mock ASR failed to emit final transcript."
+        });
       });
       this.itemIndex += 1;
     }

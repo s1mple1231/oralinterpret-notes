@@ -225,6 +225,10 @@ export default function App() {
     )
     const payload = await response.json()
     if (!response.ok) {
+      if (payload.error === "Session not found or expired.") {
+        stopStatePolling()
+        setIsListening(false)
+      }
       throw new Error(payload.error || "Failed to fetch session state.")
     }
 
