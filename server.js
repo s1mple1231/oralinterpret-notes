@@ -204,6 +204,7 @@ function createSessionState() {
     notesByItemId: new Map(),
     pendingDraftTimers: new Map(),
     generatingForItem: new Set(),
+    lastEvent: null,
     sessionConfig: {
       language: DEFAULT_LANGUAGE
     },
@@ -340,6 +341,13 @@ async function persistSession(session) {
 
 function sendSessionEvent(session, payload) {
   touchSession(session);
+  if (payload.type === "error" || payload.type === "status") {
+    session.lastEvent = {
+      type: payload.type,
+      status: payload.status || null,
+      message: payload.message || ""
+    };
+  }
   const data = `data: ${JSON.stringify(payload)}\n\n`;
   for (const client of session.sseClients) {
     client.write(data);
@@ -424,6 +432,7 @@ function createSessionSnapshot(session) {
     itemOrder: [...session.itemOrder],
     lineCounter: session.lineCounter,
     itemCounter: session.itemCounter,
+    lastEvent: session.lastEvent,
     transcript: orderedTranscriptItems(session).map((item) => ({
       itemId: item.itemId,
       order: item.order,
@@ -460,6 +469,7 @@ function restoreSessionFromSnapshot(snapshot) {
   session.itemOrder = [...snapshot.itemOrder];
   session.lineCounter = snapshot.lineCounter;
   session.itemCounter = snapshot.itemCounter;
+  session.lastEvent = snapshot.lastEvent || null;
 
   for (const item of snapshot.transcript || []) {
     session.transcriptByItemId.set(item.itemId, {
@@ -1206,6 +1216,7 @@ function sessionBootstrapPayload(session) {
     providers: getProviderSummary(session),
     transcript: orderedTranscriptItems(session),
     notes: orderedNoteItems(session),
+    lastEvent: session.lastEvent,
     snapshot: createSessionSnapshot(session)
   };
 }

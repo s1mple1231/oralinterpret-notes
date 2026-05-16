@@ -64,6 +64,12 @@ type NotesItem = {
   lines: NoteLine[]
 }
 
+type SessionEvent = {
+  type: string
+  status?: string | null
+  message?: string
+}
+
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "")
 
 function apiUrl(pathname: string) {
@@ -162,11 +168,15 @@ export default function App() {
     providers?: ProviderSummary
     transcript?: TranscriptItem[]
     notes?: NotesItem[]
+    lastEvent?: SessionEvent | null
   }) {
     setSessionId(payload.sessionId || null)
     setTargetSampleRate(payload.audio?.sampleRate || 16000)
     if (payload.providers) {
       syncProviderSelections(payload.providers)
+    }
+    if (payload.lastEvent?.message) {
+      setStatus(payload.lastEvent.message)
     }
 
     const transcriptMap = new Map<string, TranscriptItem>()
