@@ -139,7 +139,7 @@ function int16ChunksToBase64(chunks: Int16Array[]) {
 export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
-  const [status, setStatus] = useState("Idle")
+  const [status, setStatus] = useState("空闲")
   const [targetSampleRate, setTargetSampleRate] = useState(16000)
   const [providers, setProviders] = useState<ProviderSummary | null>(null)
   const [selectedAsr, setSelectedAsr] = useState("mock")
@@ -305,7 +305,7 @@ export default function App() {
 
     setSessionId(null)
     setIsListening(false)
-    setStatus("Idle")
+    setStatus("空闲")
     stopStatePolling()
   }
 
@@ -366,7 +366,7 @@ export default function App() {
     }, 300)
 
     setIsListening(true)
-    setStatus("Listening")
+    setStatus("监听中")
   }
 
   useEffect(() => {
@@ -396,22 +396,23 @@ export default function App() {
           <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
             <CardHeader className="gap-5 pb-4">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className="bg-primary/10 text-primary">shadcn/ui style</Badge>
-                <Badge>web deploy ready</Badge>
-                <Badge className="bg-secondary/90 text-secondary-foreground">two-stage notes</Badge>
+                <Badge className="bg-primary/10 text-primary">shadcn/ui 风格</Badge>
+                <Badge>可网页部署</Badge>
+                <Badge className="bg-secondary/90 text-secondary-foreground">两段式笔记</Badge>
               </div>
               <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="space-y-4">
                   <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
-                    Interpreting Console
+                    口译控制台
                   </p>
                   <h1 className="max-w-3xl text-4xl font-semibold leading-[0.96] tracking-tight text-balance md:text-6xl">
-                    Real-time interpreter notes that feel precise, calm, and usable.
+                    实时口译笔记，
+                    准确、克制、
+                    真正可用。
                   </h1>
                   <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-                    A minimal broadcast console for live transcript flow and interpreter-style note
-                    compression. Built around session isolation, low-latency updates, and provider
-                    switching.
+                    一个面向实时转写与口译员风格笔记压缩的极简工作台，围绕会话隔离、低延迟更新与
+                    provider 切换而构建。
                   </p>
                 </div>
 
@@ -421,7 +422,7 @@ export default function App() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                            Session
+                            会话
                           </p>
                           <p className="mt-1 text-sm font-medium text-foreground">{status}</p>
                         </div>
@@ -439,9 +440,9 @@ export default function App() {
                   </Card>
 
                   <div className="grid grid-cols-3 gap-3">
-                    <MiniTile icon={AudioLines} title="Streaming" value="live" />
-                    <MiniTile icon={Bolt} title="Cadence" value="300ms" />
-                    <MiniTile icon={Sparkles} title="Mode" value="elegant" />
+                    <MiniTile icon={AudioLines} title="流式状态" value="实时" />
+                    <MiniTile icon={Bolt} title="刷新节奏" value="300ms" />
+                    <MiniTile icon={Sparkles} title="模式" value="简洁" />
                   </div>
                 </div>
               </div>
@@ -450,15 +451,14 @@ export default function App() {
 
           <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
             <CardHeader className="pb-3">
-              <CardTitle className="text-white">Control Surface</CardTitle>
+              <CardTitle className="text-white">控制面板</CardTitle>
               <CardDescription className="text-white/70">
-                Switch providers, set language hints, and drive the listening session from one
-                compact panel.
+                在一个紧凑面板里切换 provider、设置语言提示，并控制整段监听流程。
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <ControlField
-                label="Language hint"
+                label="语言提示"
                 icon={Languages}
                 input={
                   <Input
@@ -470,7 +470,7 @@ export default function App() {
                 }
               />
               <ControlField
-                label="ASR provider"
+                label="ASR 提供方"
                 icon={Activity}
                 input={
                   <NativeSelect
@@ -492,7 +492,7 @@ export default function App() {
                 }
               />
               <ControlField
-                label="Notes provider"
+                label="笔记提供方"
                 icon={NotebookText}
                 input={
                   <NativeSelect
@@ -516,7 +516,7 @@ export default function App() {
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
-                  Start Listening
+                  开始监听
                 </Button>
                 <Button
                   onClick={() => void stopCapture()}
@@ -525,7 +525,7 @@ export default function App() {
                   size="lg"
                   className="border-white/12 bg-white/0 text-white hover:bg-white/8"
                 >
-                  Stop
+                  停止
                 </Button>
                 <Button
                   onClick={clearStreams}
@@ -534,7 +534,7 @@ export default function App() {
                   size="lg"
                   className="border-white/12 bg-white/0 text-white hover:bg-white/8"
                 >
-                  Clear
+                  清空
                 </Button>
               </div>
             </CardContent>
@@ -543,8 +543,8 @@ export default function App() {
 
         <section className="mt-5 grid flex-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
           <StreamPane
-            title="Transcript Stream"
-            description="The raw listening layer. Keep this visible for trust and debugging."
+            title="转写流"
+            description="原始监听层。保留它有助于建立信任感，也方便调试。"
             tag="ASR"
             items={transcriptItems.map((item) => ({
               key: item.itemId,
@@ -555,8 +555,8 @@ export default function App() {
           />
 
           <StreamPane
-            title="Interpreter Notes"
-            description="Compressed note lines optimized for recall rather than polished prose."
+            title="口译笔记"
+            description="面向记忆唤起而不是书面润色的压缩笔记行。"
             tag="NOTES"
             noteMode
             items={noteItems.map((item) => ({
@@ -685,7 +685,7 @@ function StreamPane({
             ))
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
-              No events yet. Start a session to see transcript and note flow.
+              暂无内容。开始一次会话后，这里会显示转写与笔记流。
             </div>
           )}
         </div>
