@@ -229,6 +229,11 @@ export default function App() {
     }
   }
 
+  function clearStreams() {
+    setTranscripts(new Map())
+    setNotes(new Map())
+  }
+
   async function pollSessionState(nextSessionId: string) {
     const response = await fetch(
       `${apiUrl("/api/session/state")}?sessionId=${encodeURIComponent(nextSessionId)}`,
@@ -302,8 +307,6 @@ export default function App() {
     setIsListening(false)
     setStatus("Idle")
     stopStatePolling()
-    setTranscripts(new Map())
-    setNotes(new Map())
   }
 
   async function startCapture() {
@@ -523,6 +526,15 @@ export default function App() {
                   className="border-white/12 bg-white/0 text-white hover:bg-white/8"
                 >
                   Stop
+                </Button>
+                <Button
+                  onClick={clearStreams}
+                  disabled={isListening || (!transcripts.size && !notes.size)}
+                  variant="outline"
+                  size="lg"
+                  className="border-white/12 bg-white/0 text-white hover:bg-white/8"
+                >
+                  Clear
                 </Button>
               </div>
             </CardContent>
