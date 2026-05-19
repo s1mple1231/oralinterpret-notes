@@ -266,7 +266,7 @@ export default function App() {
 
     statePollTimerRef.current = window.setInterval(() => {
       void pollSessionState(nextSessionId).catch((error: Error) => setStatus(error.message))
-    }, 1000)
+    }, 300)
   }
 
   async function stopCapture() {
