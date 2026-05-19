@@ -378,7 +378,9 @@ export default function App() {
           body: JSON.stringify({ sessionId: payload.sessionId }),
         }).catch(() => {})
         throw new Error(
-          error instanceof Error ? `系统声音采集未开启：${error.message}` : "系统声音采集未开启。",
+          error instanceof Error
+            ? `系统声音采集未开启：${error.message}`
+            : "系统声音采集未开启。",
         )
       }
     }
@@ -463,22 +465,30 @@ export default function App() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="glass-grid absolute inset-0 opacity-45" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-8">
-        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr] xl:items-stretch">
           <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
-            <CardHeader className="gap-5 pb-4">
-              <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="space-y-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
-                    口译控制台
-                  </p>
-                  <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
-                    实时口译笔记
-                  </h1>
+            <CardHeader className="h-full pb-4">
+              <div className="grid h-full gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
+                <div className="flex h-full flex-col justify-between gap-10">
+                  <div className="space-y-4">
+                    <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
+                      口译控制台
+                    </p>
+                    <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
+                      实时口译笔记
+                    </h1>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <MiniTile icon={AudioLines} title="流式状态" value="实时" />
+                    <MiniTile icon={Bolt} title="刷新节奏" value="300ms" />
+                    <MiniTile icon={Sparkles} title="模式" value="简洁" />
+                  </div>
                 </div>
 
-                <div className="grid gap-3">
-                  <Card className="border-border/70 bg-white/70">
-                    <CardContent className="grid gap-4 p-5">
+                <div className="flex h-full flex-col">
+                  <Card className="h-full border-border/70 bg-white/70">
+                    <CardContent className="grid h-full gap-4 p-5">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -498,18 +508,12 @@ export default function App() {
                       </div>
                     </CardContent>
                   </Card>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <MiniTile icon={AudioLines} title="流式状态" value="实时" />
-                    <MiniTile icon={Bolt} title="刷新节奏" value="300ms" />
-                    <MiniTile icon={Sparkles} title="模式" value="简洁" />
-                  </div>
                 </div>
               </div>
             </CardHeader>
           </Card>
 
-          <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
+          <Card className="h-full bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-white">控制面板</CardTitle>
             </CardHeader>
