@@ -23,7 +23,21 @@ export const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProp
           )}
           {...props}
         >
-          {children}
+          {React.Children.map(children, (child) => {
+            if (!React.isValidElement(child)) {
+              return child
+            }
+
+            if (child.type === "option") {
+              const optionChild =
+                child as React.ReactElement<React.OptionHTMLAttributes<HTMLOptionElement>>
+              return React.cloneElement(optionChild, {
+                className: cn("bg-white text-slate-900", optionChild.props.className),
+              })
+            }
+
+            return child
+          })}
         </select>
         <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-muted-foreground" />
       </div>
