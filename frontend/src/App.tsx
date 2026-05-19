@@ -147,11 +147,14 @@ export default function App() {
   const [transcripts, setTranscripts] = useState<Map<string, TranscriptItem>>(new Map())
   const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
   const [isListening, setIsListening] = useState(false)
+  const [includeSystemAudio, setIncludeSystemAudio] = useState(false)
 
-  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const micStreamRef = useRef<MediaStream | null>(null)
+  const displayStreamRef = useRef<MediaStream | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
   const processorRef = useRef<ScriptProcessorNode | null>(null)
+  const sinkRef = useRef<GainNode | null>(null)
   const flushTimerRef = useRef<number | null>(null)
   const statePollTimerRef = useRef<number | null>(null)
   const sampleBuffersRef = useRef<Int16Array[]>([])
@@ -291,13 +294,21 @@ export default function App() {
       await audioContextRef.current.close()
     }
     audioContextRef.current = null
+    sinkRef.current = null
 
-    if (mediaStreamRef.current) {
-      for (const track of mediaStreamRef.current.getTracks()) {
+    if (micStreamRef.current) {
+      for (const track of micStreamRef.current.getTracks()) {
         track.stop()
       }
     }
-    mediaStreamRef.current = null
+    micStreamRef.current = null
+
+    if (displayStreamRef.current) {
+      for (const track of displayStreamRef.current.getTracks()) {
+        track.stop()
+      }
+    }
+    displayStreamRef.current = null
     sampleBuffersRef.current = []
 
     if (sessionId) {
@@ -341,7 +352,7 @@ export default function App() {
     }
     startStatePolling(payload.sessionId)
 
-    const stream = await navigator.mediaDevices.getUserMedia({
+    const micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
         echoCancellation: true,
@@ -350,9 +361,46 @@ export default function App() {
       },
     })
 
+    let displayStream: MediaStream | null = null
+    if (includeSystemAudio) {
+      try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        })
+      } catch (error) {
+        await fetch(apiUrl("/api/session/stop"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId: payload.sessionId }),
+        }).catch(() => {})
+        throw new Error(
+          error instanceof Error ? `系统声音采集未开启：${error.message}` : "系统声音采集未开启。",
+        )
+      }
+    }
+
     const audioContext = new AudioContext()
-    const source = audioContext.createMediaStreamSource(stream)
+    const destination = audioContext.createMediaStreamDestination()
+    const source = audioContext.createMediaStreamSource(destination.stream)
     const processor = audioContext.createScriptProcessor(4096, 1, 1)
+    const silentSink = audioContext.createGain()
+    silentSink.gain.value = 0
+
+    const micSource = audioContext.createMediaStreamSource(micStream)
+    micSource.connect(destination)
+
+    const displayAudioTrack = displayStream?.getAudioTracks?.()[0]
+    if (displayStream && displayAudioTrack) {
+      const displayAudioOnly = new MediaStream([displayAudioTrack])
+      const displaySource = audioContext.createMediaStreamSource(displayAudioOnly)
+      displaySource.connect(destination)
+      setStatus("监听中（麦克风 + 系统声音）")
+    } else if (includeSystemAudio) {
+      setStatus("监听中（仅麦克风，当前共享源未带系统声音）")
+    }
 
     processor.onaudioprocess = (event) => {
       const channel = event.inputBuffer.getChannelData(0)
@@ -362,18 +410,23 @@ export default function App() {
     }
 
     source.connect(processor)
-    processor.connect(audioContext.destination)
+    processor.connect(silentSink)
+    silentSink.connect(audioContext.destination)
 
-    mediaStreamRef.current = stream
+    micStreamRef.current = micStream
+    displayStreamRef.current = displayStream
     audioContextRef.current = audioContext
     sourceRef.current = source
     processorRef.current = processor
+    sinkRef.current = silentSink
     flushTimerRef.current = window.setInterval(() => {
       flushAudio().catch((error: Error) => setStatus(error.message))
     }, 300)
 
     setIsListening(true)
-    setStatus("监听中")
+    if (!includeSystemAudio) {
+      setStatus("监听中")
+    }
   }
 
   useEffect(() => {
@@ -520,6 +573,16 @@ export default function App() {
                   </NativeSelect>
                 }
               />
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/82">
+                <input
+                  type="checkbox"
+                  checked={includeSystemAudio}
+                  onChange={(event) => setIncludeSystemAudio(event.target.checked)}
+                  disabled={isListening}
+                  className="h-4 w-4 accent-white"
+                />
+                <span>同时采集系统声音</span>
+              </label>
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
