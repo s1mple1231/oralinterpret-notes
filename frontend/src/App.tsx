@@ -179,27 +179,34 @@ export default function App() {
       setStatus(payload.lastEvent.message)
     }
 
-    const transcriptMap = new Map<string, TranscriptItem>()
-    for (const item of payload.transcript ?? []) {
-      transcriptMap.set(item.itemId, {
-        itemId: item.itemId,
-        order: item.order,
-        status: item.status,
-        text: item.final || item.delta || item.text || "",
-      })
-    }
-    setTranscripts(transcriptMap)
+    setTranscripts((previous) => {
+      const next = new Map(previous)
+      for (const item of payload.transcript ?? []) {
+        next.set(item.itemId, {
+          itemId: item.itemId,
+          order: item.order,
+          status: item.status,
+          text: item.final || item.delta || item.text || "",
+        })
+      }
+      return next
+    })
 
-    const noteMap = new Map<string, NotesItem>()
-    for (const item of payload.notes ?? []) {
-      noteMap.set(item.itemId, {
-        itemId: item.itemId,
-        order: transcriptMap.get(item.itemId)?.order || 0,
-        status: item.status,
-        lines: item.lines || [],
-      })
-    }
-    setNotes(noteMap)
+    setNotes((previous) => {
+      const next = new Map(previous)
+      for (const item of payload.notes ?? []) {
+        next.set(item.itemId, {
+          itemId: item.itemId,
+          order:
+            payload.transcript?.find((entry) => entry.itemId === item.itemId)?.order ||
+            previous.get(item.itemId)?.order ||
+            0,
+          status: item.status,
+          lines: item.lines || [],
+        })
+      }
+      return next
+    })
   }
 
   async function flushAudio() {
