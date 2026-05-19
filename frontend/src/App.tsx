@@ -147,7 +147,7 @@ export default function App() {
   const [transcripts, setTranscripts] = useState<Map<string, TranscriptItem>>(new Map())
   const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
   const [isListening, setIsListening] = useState(false)
-  const [includeSystemAudio, setIncludeSystemAudio] = useState(false)
+  const [audioMode, setAudioMode] = useState<"mic" | "mic_system">("mic")
 
   const micStreamRef = useRef<MediaStream | null>(null)
   const displayStreamRef = useRef<MediaStream | null>(null)
@@ -362,7 +362,7 @@ export default function App() {
     })
 
     let displayStream: MediaStream | null = null
-    if (includeSystemAudio) {
+    if (audioMode === "mic_system") {
       try {
         displayStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
@@ -398,7 +398,7 @@ export default function App() {
       const displaySource = audioContext.createMediaStreamSource(displayAudioOnly)
       displaySource.connect(destination)
       setStatus("监听中（麦克风 + 系统声音）")
-    } else if (includeSystemAudio) {
+    } else if (audioMode === "mic_system") {
       setStatus("监听中（仅麦克风，当前共享源未带系统声音）")
     }
 
@@ -424,7 +424,7 @@ export default function App() {
     }, 300)
 
     setIsListening(true)
-    if (!includeSystemAudio) {
+    if (audioMode === "mic") {
       setStatus("监听中")
     }
   }
@@ -573,16 +573,24 @@ export default function App() {
                   </NativeSelect>
                 }
               />
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/82">
-                <input
-                  type="checkbox"
-                  checked={includeSystemAudio}
-                  onChange={(event) => setIncludeSystemAudio(event.target.checked)}
-                  disabled={isListening}
-                  className="h-4 w-4 accent-white"
-                />
-                <span>同时采集系统声音</span>
-              </label>
+              <ControlField
+                label="音频模式"
+                icon={AudioLines}
+                input={
+                  <NativeSelect
+                    value={audioMode}
+                    onChange={(event) =>
+                      setAudioMode(event.target.value as "mic" | "mic_system")
+                    }
+                    disabled={isListening}
+                    shellClassName="border-white/10 bg-white/5"
+                    className="text-white"
+                  >
+                    <option value="mic">仅麦克风</option>
+                    <option value="mic_system">麦克风 + 系统声音</option>
+                  </NativeSelect>
+                }
+              />
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
