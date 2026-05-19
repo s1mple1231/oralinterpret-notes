@@ -137,6 +137,8 @@ function int16ChunksToBase64(chunks: Int16Array[]) {
 }
 
 export default function App() {
+  type AudioMode = "mic" | "system" | "mic_system"
+
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
   const [status, setStatus] = useState("空闲")
@@ -147,7 +149,7 @@ export default function App() {
   const [transcripts, setTranscripts] = useState<Map<string, TranscriptItem>>(new Map())
   const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
   const [isListening, setIsListening] = useState(false)
-  const [audioMode, setAudioMode] = useState<"mic" | "mic_system">("mic")
+  const [audioMode, setAudioMode] = useState<AudioMode>("mic")
 
   const micStreamRef = useRef<MediaStream | null>(null)
   const displayStreamRef = useRef<MediaStream | null>(null)
@@ -352,17 +354,22 @@ export default function App() {
     }
     startStatePolling(payload.sessionId)
 
-    const micStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-    })
+    const needsMic = audioMode === "mic" || audioMode === "mic_system"
+    const needsSystemAudio = audioMode === "system" || audioMode === "mic_system"
+
+    const micStream = needsMic
+      ? await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        })
+      : null
 
     let displayStream: MediaStream | null = null
-    if (audioMode === "mic_system") {
+    if (needsSystemAudio) {
       try {
         displayStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
@@ -389,17 +396,27 @@ export default function App() {
     const silentSink = audioContext.createGain()
     silentSink.gain.value = 0
 
-    const micSource = audioContext.createMediaStreamSource(micStream)
-    micSource.connect(destination)
+    if (micStream) {
+      const micSource = audioContext.createMediaStreamSource(micStream)
+      micSource.connect(destination)
+    }
 
     const displayAudioTrack = displayStream?.getAudioTracks?.()[0]
     if (displayStream && displayAudioTrack) {
       const displayAudioOnly = new MediaStream([displayAudioTrack])
       const displaySource = audioContext.createMediaStreamSource(displayAudioOnly)
       displaySource.connect(destination)
-      setStatus("监听中（麦克风 + 系统声音）")
-    } else if (audioMode === "mic_system") {
-      setStatus("监听中（仅麦克风，当前共享源未带系统声音）")
+      if (audioMode === "mic_system") {
+        setStatus("监听中（麦克风 + 系统声音）")
+      } else if (audioMode === "system") {
+        setStatus("监听中（仅系统声音）")
+      }
+    } else if (needsSystemAudio) {
+      if (audioMode === "mic_system") {
+        setStatus("监听中（仅麦克风，当前共享源未带系统声音）")
+      } else {
+        setStatus("监听中（未采集到系统声音）")
+      }
     }
 
     processor.onaudioprocess = (event) => {
@@ -580,13 +597,14 @@ export default function App() {
                   <NativeSelect
                     value={audioMode}
                     onChange={(event) =>
-                      setAudioMode(event.target.value as "mic" | "mic_system")
+                      setAudioMode(event.target.value as AudioMode)
                     }
                     disabled={isListening}
                     shellClassName="border-white/10 bg-white/5"
                     className="text-white"
                   >
                     <option value="mic">仅麦克风</option>
+                    <option value="system">仅系统声音</option>
                     <option value="mic_system">麦克风 + 系统声音</option>
                   </NativeSelect>
                 }
