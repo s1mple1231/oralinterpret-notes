@@ -12,13 +12,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator"
@@ -69,6 +63,8 @@ type SessionEvent = {
   status?: string | null
   message?: string
 }
+
+type AudioMode = "mic" | "system" | "mic_system"
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "")
 
@@ -137,8 +133,6 @@ function int16ChunksToBase64(chunks: Int16Array[]) {
 }
 
 export default function App() {
-  type AudioMode = "mic" | "system" | "mic_system"
-
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
   const [status, setStatus] = useState("空闲")
@@ -472,25 +466,14 @@ export default function App() {
         <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
           <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
             <CardHeader className="gap-5 pb-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge className="bg-primary/10 text-primary">shadcn/ui 风格</Badge>
-                <Badge>可网页部署</Badge>
-                <Badge className="bg-secondary/90 text-secondary-foreground">两段式笔记</Badge>
-              </div>
               <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="space-y-4">
                   <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
                     口译控制台
                   </p>
-                  <h1 className="max-w-3xl text-4xl font-semibold leading-[0.96] tracking-tight text-balance md:text-6xl">
-                    实时口译笔记，
-                    准确、克制、
-                    真正可用。
+                  <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
+                    实时口译笔记
                   </h1>
-                  <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-                    一个面向实时转写与口译员风格笔记压缩的极简工作台，围绕会话隔离、低延迟更新与
-                    provider 切换而构建。
-                  </p>
                 </div>
 
                 <div className="grid gap-3">
@@ -529,9 +512,6 @@ export default function App() {
           <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-white">控制面板</CardTitle>
-              <CardDescription className="text-white/70">
-                在一个紧凑面板里切换 provider、设置语言提示，并控制整段监听流程。
-              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <ControlField
@@ -596,9 +576,7 @@ export default function App() {
                 input={
                   <NativeSelect
                     value={audioMode}
-                    onChange={(event) =>
-                      setAudioMode(event.target.value as AudioMode)
-                    }
+                    onChange={(event) => setAudioMode(event.target.value as AudioMode)}
                     disabled={isListening}
                     shellClassName="border-white/10 bg-white/5"
                     className="text-white"
@@ -640,7 +618,6 @@ export default function App() {
         <section className="mt-5 grid flex-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
           <StreamPane
             title="转写流"
-            description="原始监听层。保留它有助于建立信任感，也方便调试。"
             tag="ASR"
             items={transcriptItems.map((item) => ({
               key: item.itemId,
@@ -652,7 +629,6 @@ export default function App() {
 
           <StreamPane
             title="口译笔记"
-            description="面向记忆唤起而不是书面润色的压缩笔记行。"
             tag="NOTES"
             noteMode
             items={noteItems.map((item) => ({
@@ -732,13 +708,11 @@ function ControlField({
 
 function StreamPane({
   title,
-  description,
   tag,
   items,
   noteMode = false,
 }: {
   title: string
-  description: string
   tag: string
   items: { key: string; status: string; title: string; body: string }[]
   noteMode?: boolean
@@ -747,10 +721,7 @@ function StreamPane({
     <Card className="flex min-h-[42rem] flex-col">
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription className="mt-1 max-w-xl">{description}</CardDescription>
-          </div>
+          <CardTitle>{title}</CardTitle>
           <Badge>{tag}</Badge>
         </div>
       </CardHeader>
@@ -781,7 +752,7 @@ function StreamPane({
             ))
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
-              暂无内容。开始一次会话后，这里会显示转写与笔记流。
+              暂无内容。
             </div>
           )}
         </div>
