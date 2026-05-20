@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomInt, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -55,6 +55,16 @@ const QWEN_API_KEY = process.env.QWEN_API_KEY || "";
 const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
 const QWEN_ASR_BASE_URL =
   process.env.QWEN_ASR_BASE_URL || "wss://dashscope.aliyuncs.com/api-ws/v1/realtime";
+const TENCENT_ASR_APP_ID = process.env.TENCENT_ASR_APP_ID || "";
+const TENCENT_ASR_SECRET_ID = process.env.TENCENT_ASR_SECRET_ID || "";
+const TENCENT_ASR_SECRET_KEY = process.env.TENCENT_ASR_SECRET_KEY || "";
+const TENCENT_ASR_ENGINE_MODEL_TYPE = process.env.TENCENT_ASR_ENGINE_MODEL_TYPE || "";
+const TENCENT_ASR_VOICE_FORMAT = Number(process.env.TENCENT_ASR_VOICE_FORMAT || 1);
+const TENCENT_ASR_NEED_VAD = Number(process.env.TENCENT_ASR_NEED_VAD || 1);
+const TENCENT_ASR_FILTER_DIRTY = Number(process.env.TENCENT_ASR_FILTER_DIRTY || 0);
+const TENCENT_ASR_FILTER_MODAL = Number(process.env.TENCENT_ASR_FILTER_MODAL || 1);
+const TENCENT_ASR_FILTER_PUNC = Number(process.env.TENCENT_ASR_FILTER_PUNC || 0);
+const TENCENT_ASR_CONVERT_NUM_MODE = Number(process.env.TENCENT_ASR_CONVERT_NUM_MODE || 1);
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 const MODELSCOPE_API_KEY = process.env.MODELSCOPE_API_KEY || "";
 const MODELSCOPE_ENABLE_THINKING =
@@ -79,6 +89,13 @@ const providerCatalog = {
     },
     qwen: {
       label: "Qwen Realtime ASR",
+      kind: "realtime_asr",
+      implemented: true,
+      sampleRate: 16000,
+      inputAudioFormat: "pcm"
+    },
+    tencent: {
+      label: "Tencent Cloud Realtime ASR",
       kind: "realtime_asr",
       implemented: true,
       sampleRate: 16000,
@@ -171,15 +188,25 @@ function getStartupChecks() {
       ok: Boolean(OPENAI_API_KEY),
       message: "OPENAI_API_KEY is required only when using OpenAI ASR or OpenAI Notes."
     },
-    {
-      key: "modelscope_api_key",
-      ok: Boolean(MODELSCOPE_API_KEY),
-      message: "MODELSCOPE_API_KEY is required only when using ModelScope Notes."
-    },
-    {
-      key: "session_store",
-      ok: true,
-      message: `Session store mode: ${process.env.SESSION_STORE || "memory"}`
+      {
+        key: "modelscope_api_key",
+        ok: Boolean(MODELSCOPE_API_KEY),
+        message: "MODELSCOPE_API_KEY is required only when using ModelScope Notes."
+      },
+      {
+        key: "tencent_asr_config",
+        ok:
+          Boolean(TENCENT_ASR_APP_ID) &&
+          Boolean(TENCENT_ASR_SECRET_ID) &&
+          Boolean(TENCENT_ASR_SECRET_KEY) &&
+          Boolean(TENCENT_ASR_ENGINE_MODEL_TYPE),
+        message:
+          "Tencent ASR requires TENCENT_ASR_APP_ID, TENCENT_ASR_SECRET_ID, TENCENT_ASR_SECRET_KEY, and TENCENT_ASR_ENGINE_MODEL_TYPE."
+      },
+      {
+        key: "session_store",
+        ok: true,
+        message: `Session store mode: ${process.env.SESSION_STORE || "memory"}`
     },
     {
       key: "cloudbase_env",
@@ -781,6 +808,172 @@ class QwenRealtimeAsrProvider {
   }
 }
 
+class TencentRealtimeAsrProvider {
+  constructor(config) {
+    this.config = config;
+    this.socket = null;
+    this.ready = false;
+    this.voiceId = "";
+  }
+
+  buildSignedUrl() {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const expired = timestamp + 60 * 60;
+    const nonce = randomInt(100000, 999999999);
+    this.voiceId = randomUUID().replace(/-/g, "").slice(0, 16);
+
+    const params = new URLSearchParams();
+    params.set("convert_num_mode", String(this.config.convertNumMode));
+    params.set("engine_model_type", this.config.engineModelType);
+    params.set("expired", String(expired));
+    params.set("filter_dirty", String(this.config.filterDirty));
+    params.set("filter_modal", String(this.config.filterModal));
+    params.set("filter_punc", String(this.config.filterPunc));
+    params.set("needvad", String(this.config.needVad));
+    params.set("nonce", String(nonce));
+    params.set("secretid", this.config.secretId);
+    params.set("timestamp", String(timestamp));
+    params.set("voice_format", String(this.config.voiceFormat));
+    params.set("voice_id", this.voiceId);
+
+    const sortedEntries = [...params.entries()].sort(([left], [right]) =>
+      left.localeCompare(right)
+    );
+    const queryString = sortedEntries
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join("&");
+
+    const signSource = `asr.cloud.tencent.com/asr/v2/${this.config.appId}?${queryString}`;
+    const signature = createHmac("sha1", this.config.secretKey)
+      .update(signSource)
+      .digest("base64");
+
+    return `wss://asr.cloud.tencent.com/asr/v2/${this.config.appId}?${queryString}&signature=${encodeURIComponent(signature)}`;
+  }
+
+  startSession({ onEvent, onStatus }) {
+    const wsUrl = this.buildSignedUrl();
+    this.socket = new NodeWebSocket(wsUrl);
+
+    this.socket.on("open", () => {
+      onStatus({
+        type: "status",
+        status: "connecting",
+        message: `${this.config.label} connecting.`
+      });
+    });
+
+    this.socket.on("message", async (rawMessage, isBinary) => {
+      if (isBinary) {
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(String(rawMessage));
+
+        if (payload.code !== 0) {
+          onStatus({
+            type: "error",
+            message: payload.message || `${this.config.label} returned an error.`
+          });
+          return;
+        }
+
+        if (payload.voice_id && !payload.result && !payload.final) {
+          this.ready = true;
+          onStatus({
+            type: "status",
+            status: "connected",
+            message: `${this.config.label} connected.`
+          });
+          return;
+        }
+
+        if (payload.result) {
+          const itemId = `tencent_item_${payload.result.index ?? 0}`;
+          const transcriptText = payload.result.voice_text_str || "";
+          const sliceType = payload.result.slice_type;
+
+          if (sliceType === 2) {
+            await onEvent({
+              type: "conversation.item.input_audio_transcription.completed",
+              item_id: itemId,
+              transcript: transcriptText
+            });
+            return;
+          }
+
+          if (sliceType === 0 || sliceType === 1) {
+            await onEvent({
+              type: "conversation.item.input_audio_transcription.text",
+              item_id: itemId,
+              text: transcriptText,
+              stash: ""
+            });
+            return;
+          }
+        }
+
+        if (payload.final === 1) {
+          onStatus({
+            type: "status",
+            status: "disconnected",
+            message: `${this.config.label} finished.`
+          });
+        }
+      } catch (error) {
+        onStatus({
+          type: "error",
+          message: `Failed to process Tencent ASR event: ${error.message}`
+        });
+      }
+    });
+
+    this.socket.on("close", () => {
+      this.ready = false;
+      onStatus({
+        type: "status",
+        status: "disconnected",
+        message: `${this.config.label} disconnected.`
+      });
+    });
+
+    this.socket.on("error", (error) => {
+      onStatus({
+        type: "error",
+        message:
+          error?.message || `${this.config.label} socket error. Check credentials and signature.`
+      });
+    });
+  }
+
+  appendAudio(audio) {
+    if (!this.socket || !this.ready) {
+      throw new Error("Tencent Cloud Realtime ASR is not connected yet.");
+    }
+
+    const buffer = Buffer.from(audio, "base64");
+    this.socket.send(buffer, { binary: true });
+  }
+
+  stopSession() {
+    if (this.socket && this.ready) {
+      try {
+        this.socket.send(JSON.stringify({ type: "end" }));
+      } catch {
+        // Ignore shutdown send errors.
+      }
+    }
+
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+
+    this.ready = false;
+  }
+}
+
 class OpenAICompatibleNotesProvider {
   constructor(config) {
     this.config = config;
@@ -1060,6 +1253,33 @@ function createAsrProvider(name) {
       apiKey: QWEN_API_KEY,
       model: QWEN_ASR_MODEL,
       baseUrl: QWEN_ASR_BASE_URL
+    });
+  }
+
+  if (name === "tencent") {
+    if (
+      !TENCENT_ASR_APP_ID ||
+      !TENCENT_ASR_SECRET_ID ||
+      !TENCENT_ASR_SECRET_KEY ||
+      !TENCENT_ASR_ENGINE_MODEL_TYPE
+    ) {
+      throw new Error(
+        "Tencent Cloud Realtime ASR is not configured. Add TENCENT_ASR_APP_ID, TENCENT_ASR_SECRET_ID, TENCENT_ASR_SECRET_KEY, and TENCENT_ASR_ENGINE_MODEL_TYPE to .env."
+      );
+    }
+
+    return new TencentRealtimeAsrProvider({
+      ...provider,
+      appId: TENCENT_ASR_APP_ID,
+      secretId: TENCENT_ASR_SECRET_ID,
+      secretKey: TENCENT_ASR_SECRET_KEY,
+      engineModelType: TENCENT_ASR_ENGINE_MODEL_TYPE,
+      voiceFormat: TENCENT_ASR_VOICE_FORMAT,
+      needVad: TENCENT_ASR_NEED_VAD,
+      filterDirty: TENCENT_ASR_FILTER_DIRTY,
+      filterModal: TENCENT_ASR_FILTER_MODAL,
+      filterPunc: TENCENT_ASR_FILTER_PUNC,
+      convertNumMode: TENCENT_ASR_CONVERT_NUM_MODE
     });
   }
 
