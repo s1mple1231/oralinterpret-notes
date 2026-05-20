@@ -52,6 +52,8 @@ const NOTES_MODEL = process.env.NOTES_MODEL || "gpt-5.4-mini";
 
 const OPENAI_NOTES_API_KEY = process.env.OPENAI_NOTES_API_KEY || OPENAI_API_KEY;
 const QWEN_API_KEY = process.env.QWEN_API_KEY || "";
+const QWEN_ASR_API_KEY = process.env.QWEN_ASR_API_KEY || QWEN_API_KEY;
+const QWEN_NOTES_API_KEY = process.env.QWEN_NOTES_API_KEY || QWEN_API_KEY;
 const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
 const QWEN_ASR_BASE_URL =
   process.env.QWEN_ASR_BASE_URL || "wss://dashscope.aliyuncs.com/api-ws/v1/realtime";
@@ -126,10 +128,11 @@ const providerCatalog = {
       kind: "text_generation",
       implemented: true,
       baseUrl:
+        process.env.QWEN_NOTES_BASE_URL ||
         process.env.QWEN_BASE_URL ||
         "https://dashscope.aliyuncs.com/compatible-mode/v1",
       model: process.env.QWEN_MODEL || "qwen-plus",
-      apiKey: QWEN_API_KEY
+      apiKey: QWEN_NOTES_API_KEY
     },
     deepseek: {
       label: "DeepSeek Notes",
@@ -178,11 +181,12 @@ function getStartupChecks() {
       ok: Boolean(NodeWebSocket),
       message: "The `ws` dependency is required for Qwen ASR."
     },
-    {
-      key: "qwen_api_key",
-      ok: Boolean(QWEN_API_KEY),
-      message: "QWEN_API_KEY is required for all-Qwen two-stage testing."
-    },
+      {
+        key: "qwen_api_key",
+        ok: Boolean(QWEN_ASR_API_KEY) || Boolean(QWEN_NOTES_API_KEY),
+        message:
+          "Provide QWEN_ASR_API_KEY and/or QWEN_NOTES_API_KEY (or fallback QWEN_API_KEY) for Qwen ASR and Notes."
+      },
     {
       key: "openai_api_key",
       ok: Boolean(OPENAI_API_KEY),
@@ -1244,13 +1248,15 @@ function createAsrProvider(name) {
   }
 
   if (name === "qwen") {
-    if (!QWEN_API_KEY) {
-      throw new Error("Qwen Realtime ASR is not configured. Add QWEN_API_KEY to .env.");
+    if (!QWEN_ASR_API_KEY) {
+      throw new Error(
+        "Qwen Realtime ASR is not configured. Add QWEN_ASR_API_KEY (or fallback QWEN_API_KEY) to .env."
+      );
     }
 
     return new QwenRealtimeAsrProvider({
       ...provider,
-      apiKey: QWEN_API_KEY,
+      apiKey: QWEN_ASR_API_KEY,
       model: QWEN_ASR_MODEL,
       baseUrl: QWEN_ASR_BASE_URL
     });
