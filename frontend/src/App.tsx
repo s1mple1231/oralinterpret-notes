@@ -173,6 +173,7 @@ export default function App() {
   const flushTimerRef = useRef<number | null>(null)
   const statePollTimerRef = useRef<number | null>(null)
   const sampleBuffersRef = useRef<Int16Array[]>([])
+  const sessionIdRef = useRef<string | null>(null)
 
   function syncProviderSelections(summary: ProviderSummary) {
     setProviders(summary)
@@ -189,6 +190,7 @@ export default function App() {
     lastEvent?: SessionEvent | null
   }) {
     setSessionId(payload.sessionId || null)
+    sessionIdRef.current = payload.sessionId || null
     setTargetSampleRate(payload.audio?.sampleRate || 16000)
     if (payload.providers) {
       syncProviderSelections(payload.providers)
@@ -228,7 +230,8 @@ export default function App() {
   }
 
   async function flushAudio() {
-    if (!sampleBuffersRef.current.length || !sessionId) {
+    const activeSessionId = sessionIdRef.current
+    if (!sampleBuffersRef.current.length || !activeSessionId) {
       return
     }
 
@@ -241,7 +244,7 @@ export default function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sessionId,
+        sessionId: activeSessionId,
         audio,
       }),
     })
@@ -326,17 +329,19 @@ export default function App() {
     displayStreamRef.current = null
     sampleBuffersRef.current = []
 
-    if (sessionId) {
+    const activeSessionId = sessionIdRef.current
+    if (activeSessionId) {
       await fetch(apiUrl("/api/session/stop"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({ sessionId: activeSessionId }),
       }).catch(() => {})
     }
 
     setSessionId(null)
+    sessionIdRef.current = null
     setIsListening(false)
     setStatus("空闲")
     setAudioLevel(0)
@@ -364,6 +369,7 @@ export default function App() {
     }
 
     setSessionId(payload.sessionId)
+    sessionIdRef.current = payload.sessionId
     setTargetSampleRate(payload.audio?.sampleRate || 16000)
     if (payload.providers) {
       syncProviderSelections(payload.providers)
