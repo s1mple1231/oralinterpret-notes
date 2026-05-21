@@ -9,6 +9,7 @@ import {
   NotebookText,
   Radio,
   Sparkles,
+  Volume2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -132,6 +133,21 @@ function int16ChunksToBase64(chunks: Int16Array[]) {
   return btoa(binary)
 }
 
+function calculateRms(samples: Float32Array) {
+  let sum = 0
+  for (let i = 0; i < samples.length; i += 1) {
+    const value = samples[i]
+    sum += value * value
+  }
+  return Math.sqrt(sum / samples.length)
+}
+
+function audioModeLabel(mode: AudioMode) {
+  if (mode === "mic") return "仅麦克风"
+  if (mode === "system") return "仅系统声音"
+  return "麦克风 + 系统声音"
+}
+
 export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
@@ -144,6 +160,9 @@ export default function App() {
   const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
   const [isListening, setIsListening] = useState(false)
   const [audioMode, setAudioMode] = useState<AudioMode>("mic")
+  const [audioLevel, setAudioLevel] = useState(0)
+  const [inputSourceText, setInputSourceText] = useState("未开始")
+  const [systemAudioTrackState, setSystemAudioTrackState] = useState("未启用")
 
   const micStreamRef = useRef<MediaStream | null>(null)
   const displayStreamRef = useRef<MediaStream | null>(null)
@@ -320,6 +339,9 @@ export default function App() {
     setSessionId(null)
     setIsListening(false)
     setStatus("空闲")
+    setAudioLevel(0)
+    setInputSourceText("未开始")
+    setSystemAudioTrackState("未启用")
     stopStatePolling()
   }
 
@@ -350,6 +372,8 @@ export default function App() {
 
     const needsMic = audioMode === "mic" || audioMode === "mic_system"
     const needsSystemAudio = audioMode === "system" || audioMode === "mic_system"
+    setInputSourceText(audioModeLabel(audioMode))
+    setSystemAudioTrackState(needsSystemAudio ? "等待共享" : "未启用")
 
     const micStream = needsMic
       ? await navigator.mediaDevices.getUserMedia({
@@ -402,12 +426,15 @@ export default function App() {
       const displayAudioOnly = new MediaStream([displayAudioTrack])
       const displaySource = audioContext.createMediaStreamSource(displayAudioOnly)
       displaySource.connect(destination)
+      setSystemAudioTrackState("已获取")
+
       if (audioMode === "mic_system") {
         setStatus("监听中（麦克风 + 系统声音）")
       } else if (audioMode === "system") {
         setStatus("监听中（仅系统声音）")
       }
     } else if (needsSystemAudio) {
+      setSystemAudioTrackState("未拿到音轨")
       if (audioMode === "mic_system") {
         setStatus("监听中（仅麦克风，当前共享源未带系统声音）")
       } else {
@@ -417,6 +444,8 @@ export default function App() {
 
     processor.onaudioprocess = (event) => {
       const channel = event.inputBuffer.getChannelData(0)
+      const rms = calculateRms(channel)
+      setAudioLevel((previous) => Math.max(Math.min(rms * 6, 1), previous * 0.75))
       sampleBuffersRef.current.push(
         downsampleToRate(channel, audioContext.sampleRate, targetSampleRate),
       )
@@ -592,6 +621,12 @@ export default function App() {
                 }
               />
 
+              <AudioDiagnostics
+                inputSourceText={inputSourceText}
+                systemAudioTrackState={systemAudioTrackState}
+                audioLevel={audioLevel}
+              />
+
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
                   开始监听
@@ -706,6 +741,47 @@ function ControlField({
         <span>{label}</span>
       </div>
       {input}
+    </div>
+  )
+}
+
+function AudioDiagnostics({
+  inputSourceText,
+  systemAudioTrackState,
+  audioLevel,
+}: {
+  inputSourceText: string
+  systemAudioTrackState: string
+  audioLevel: number
+}) {
+  return (
+    <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center gap-2 text-sm text-white/70">
+        <Volume2 className="h-4 w-4" />
+        <span>音频诊断</span>
+      </div>
+      <div className="grid gap-2 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-white/60">当前输入</span>
+          <span className="text-white">{inputSourceText}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-white/60">系统音频轨</span>
+          <span className="text-white">{systemAudioTrackState}</span>
+        </div>
+      </div>
+      <div className="grid gap-2">
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-white/60">实时电平</span>
+          <span className="text-white">{Math.round(audioLevel * 100)}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-emerald-400 transition-[width] duration-150"
+            style={{ width: `${Math.max(4, Math.round(audioLevel * 100))}%` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
