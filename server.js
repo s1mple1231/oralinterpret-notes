@@ -1333,8 +1333,11 @@ async function handleRealtimeEvent(session, message) {
     message.type === "conversation.item.input_audio_transcription.text"
   ) {
     const item = ensureItem(session, message.item_id);
-    const chunk = message.delta || [message.text, message.stash].filter(Boolean).join("");
-    item.delta += chunk || "";
+    if (message.type === "conversation.item.input_audio_transcription.delta") {
+      item.delta += message.delta || "";
+    } else {
+      item.delta = [message.text, message.stash].filter(Boolean).join("");
+    }
     item.status = "draft";
 
     sendSessionEvent(session, {
