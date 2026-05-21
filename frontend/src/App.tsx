@@ -817,9 +817,7 @@ function StreamPane({
             items.map((item) => (
               <article
                 key={item.key}
-                className={`rounded-[22px] border border-border/80 bg-background/80 p-4 shadow-sm ${
-                  item.status === "draft" ? "border-dashed" : ""
-                }`}
+                className="rounded-[22px] bg-background/80 p-4 shadow-sm"
               >
                 <div className="mb-3 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
                   <span>{item.title}</span>
