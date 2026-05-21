@@ -705,10 +705,14 @@ class QwenRealtimeAsrProvider {
     this.config = config;
     this.socket = null;
     this.ready = false;
+    this.debugAudioChunkCount = 0;
   }
 
   startSession({ language, onEvent, onStatus }) {
     const wsUrl = `${this.config.baseUrl}?model=${encodeURIComponent(this.config.model)}`;
+    console.log(
+      `[qwen-asr] opening websocket model=${this.config.model} language=${language} sampleRate=${this.config.sampleRate}`
+    );
     this.socket = new NodeWebSocket(wsUrl, {
       headers: {
         Authorization: `Bearer ${this.config.apiKey}`,
@@ -718,6 +722,7 @@ class QwenRealtimeAsrProvider {
 
     this.socket.on("open", () => {
       this.ready = true;
+      console.log("[qwen-asr] websocket connected");
       this.socket.send(
         JSON.stringify({
           event_id: `event_${Date.now()}`,
@@ -748,6 +753,7 @@ class QwenRealtimeAsrProvider {
     this.socket.on("message", async (message) => {
       try {
         const payload = JSON.parse(String(message));
+        console.log(`[qwen-asr] event type=${payload?.type || "unknown"}`);
         await onEvent(payload);
       } catch (error) {
         onStatus({
@@ -757,8 +763,11 @@ class QwenRealtimeAsrProvider {
       }
     });
 
-    this.socket.on("close", () => {
+    this.socket.on("close", (code, reasonBuffer) => {
       this.ready = false;
+      const reason =
+        typeof reasonBuffer === "string" ? reasonBuffer : reasonBuffer?.toString?.("utf8") || "";
+      console.log(`[qwen-asr] websocket closed code=${code} reason=${reason || "(none)"}`);
       onStatus({
         type: "status",
         status: "disconnected",
@@ -767,6 +776,7 @@ class QwenRealtimeAsrProvider {
     });
 
     this.socket.on("error", (error) => {
+      console.error(`[qwen-asr] websocket error: ${error.message}`);
       onStatus({
         type: "error",
         message: `${this.config.label} socket error: ${error.message}`
@@ -777,6 +787,13 @@ class QwenRealtimeAsrProvider {
   appendAudio(audio) {
     if (!this.socket || !this.ready) {
       throw new Error("Qwen ASR session is not connected yet.");
+    }
+
+    this.debugAudioChunkCount += 1;
+    if (this.debugAudioChunkCount <= 5 || this.debugAudioChunkCount % 10 === 0) {
+      console.log(
+        `[qwen-asr] append audio chunk=${this.debugAudioChunkCount} base64Length=${audio.length}`
+      );
     }
 
     this.socket.send(
@@ -794,6 +811,9 @@ class QwenRealtimeAsrProvider {
     }
 
     if (this.ready) {
+      console.log(
+        `[qwen-asr] finishing session after ${this.debugAudioChunkCount} audio chunks sent`
+      );
       try {
         this.socket.send(
           JSON.stringify({
@@ -1302,6 +1322,12 @@ function createNotesProvider(name) {
 }
 
 async function handleRealtimeEvent(session, message) {
+  if (session.asrProviderName === "qwen") {
+    console.log(
+      `[session:${session.id}] qwen event type=${message?.type || "unknown"} item=${message?.item_id || "n/a"}`
+    );
+  }
+
   if (
     message.type === "conversation.item.input_audio_transcription.delta" ||
     message.type === "conversation.item.input_audio_transcription.text"
@@ -1317,6 +1343,11 @@ async function handleRealtimeEvent(session, message) {
       status: "draft",
       text: item.delta
     });
+    if (session.asrProviderName === "qwen") {
+      console.log(
+        `[session:${session.id}] transcript draft item=${item.itemId} length=${item.delta.length}`
+      );
+    }
     await persistSession(session);
 
     scheduleDraftNotes(session, item.itemId);
@@ -1334,6 +1365,11 @@ async function handleRealtimeEvent(session, message) {
       status: "stable",
       text: item.final
     });
+    if (session.asrProviderName === "qwen") {
+      console.log(
+        `[session:${session.id}] transcript stable item=${item.itemId} length=${item.final.length}`
+      );
+    }
     await persistSession(session);
 
     await generateNotesForItem(session, item.itemId, "stable");
@@ -1619,6 +1655,9 @@ const server = createServer(async (req, res) => {
       const session = await sessionStore.create();
       createNotesProvider(notesProviderName);
       const asrProvider = createAsrProvider(asrProviderName);
+      console.log(
+        `[session:${session.id}] start requested asr=${asrProviderName} notes=${notesProviderName} language=${language}`
+      );
 
       session.sessionConfig.language = language;
       session.asrProviderName = asrProviderName;
@@ -1670,6 +1709,16 @@ const server = createServer(async (req, res) => {
       if (!audio) {
         json(res, 400, { error: "Missing audio payload." });
         return;
+      }
+
+      if (session.asrProviderName === "qwen") {
+        const audioChunkCount = (session.debugAudioChunkCount || 0) + 1;
+        session.debugAudioChunkCount = audioChunkCount;
+        if (audioChunkCount <= 5 || audioChunkCount % 10 === 0) {
+          console.log(
+            `[session:${session.id}] received audio chunk=${audioChunkCount} base64Length=${audio.length}`
+          );
+        }
       }
 
       session.asrSession.appendAudio(audio);
