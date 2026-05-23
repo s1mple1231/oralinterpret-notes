@@ -750,17 +750,10 @@ function StreamPane({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="grid gap-3">
+        <div className="grid gap-1.5">
           {items.length ? (
             items.map((item) => (
-              <article
-                key={item.key}
-                className="rounded-[22px] bg-background/80 p-4 shadow-sm"
-              >
-                <div className="mb-3 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-                  <span>{item.title}</span>
-                  <span>{item.status}</span>
-                </div>
+              <div key={item.key} className="py-1.5">
                 <pre
                   className={`whitespace-pre-wrap text-sm leading-7 ${
                     noteMode
@@ -770,7 +763,7 @@ function StreamPane({
                 >
                   {item.body}
                 </pre>
-              </article>
+              </div>
             ))
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
