@@ -8,7 +8,6 @@ import {
   NotebookText,
   Radio,
   Sparkles,
-  Volume2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -149,7 +148,7 @@ function audioModeLabel(mode: AudioMode) {
 export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
-  const [status, setStatus] = useState("绌洪棽")
+  const [status, setStatus] = useState("空闲")
   const [targetSampleRate, setTargetSampleRate] = useState(16000)
   const [providers, setProviders] = useState<ProviderSummary | null>(null)
   const [selectedAsr, setSelectedAsr] = useState("mock")
@@ -341,7 +340,7 @@ export default function App() {
     setSessionId(null)
     sessionIdRef.current = null
     setIsListening(false)
-    setStatus("绌洪棽")
+    setStatus("空闲")
     setAudioLevel(0)
     setInputSourceText("未开始")
     setSystemAudioTrackState("未启用")
@@ -508,7 +507,7 @@ export default function App() {
                       口译控制台
                     </p>
                     <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
-                      瀹炴椂鍙ｈ瘧绗旇
+                      实时口译笔记
                     </h1>
                   </div>
 
@@ -525,7 +524,7 @@ export default function App() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                            浼氳瘽
+                            会话
                           </p>
                           <p className="mt-1 text-sm font-medium text-foreground">{status}</p>
                         </div>
@@ -611,12 +610,6 @@ export default function App() {
                     <option value="mic_system">麦克风 + 系统声音</option>
                   </NativeSelect>
                 }
-              />
-
-              <AudioDiagnostics
-                inputSourceText={inputSourceText}
-                systemAudioTrackState={systemAudioTrackState}
-                audioLevel={audioLevel}
               />
 
               <div className="flex flex-wrap gap-3 pt-1">
@@ -737,47 +730,6 @@ function ControlField({
   )
 }
 
-function AudioDiagnostics({
-  inputSourceText,
-  systemAudioTrackState,
-  audioLevel,
-}: {
-  inputSourceText: string
-  systemAudioTrackState: string
-  audioLevel: number
-}) {
-  return (
-    <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="flex items-center gap-2 text-sm text-white/70">
-        <Volume2 className="h-4 w-4" />
-        <span>音频诊断</span>
-      </div>
-      <div className="grid gap-2 text-sm">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-white/60">当前输入</span>
-          <span className="text-white">{inputSourceText}</span>
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-white/60">系统音频轨</span>
-          <span className="text-white">{systemAudioTrackState}</span>
-        </div>
-      </div>
-      <div className="grid gap-2">
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="text-white/60">实时电平</span>
-          <span className="text-white">{Math.round(audioLevel * 100)}%</span>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full rounded-full bg-emerald-400 transition-[width] duration-150"
-            style={{ width: `${Math.max(4, Math.round(audioLevel * 100))}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function StreamPane({
   title,
   tag,
@@ -822,7 +774,8 @@ function StreamPane({
             ))
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
-              鏆傛棤鍐呭銆?            </div>
+              暂无内容。
+            </div>
           )}
         </div>
       </CardContent>
