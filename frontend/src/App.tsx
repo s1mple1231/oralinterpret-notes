@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+﻿import { useEffect, useRef, useState } from "react"
 import {
   Activity,
   AudioLines,
   Bolt,
   CircleDot,
   Gauge,
-  Languages,
   NotebookText,
   Radio,
   Sparkles,
@@ -14,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator"
 
@@ -151,7 +149,7 @@ function audioModeLabel(mode: AudioMode) {
 export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [language, setLanguage] = useState("zh")
-  const [status, setStatus] = useState("空闲")
+  const [status, setStatus] = useState("绌洪棽")
   const [targetSampleRate, setTargetSampleRate] = useState(16000)
   const [providers, setProviders] = useState<ProviderSummary | null>(null)
   const [selectedAsr, setSelectedAsr] = useState("mock")
@@ -343,7 +341,7 @@ export default function App() {
     setSessionId(null)
     sessionIdRef.current = null
     setIsListening(false)
-    setStatus("空闲")
+    setStatus("绌洪棽")
     setAudioLevel(0)
     setInputSourceText("未开始")
     setSystemAudioTrackState("未启用")
@@ -410,7 +408,7 @@ export default function App() {
         throw new Error(
           error instanceof Error
             ? `系统声音采集未开启：${error.message}`
-            : "系统声音采集未开启。",
+            : "系统声音采集未开启",
         )
       }
     }
@@ -499,35 +497,35 @@ export default function App() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="glass-grid absolute inset-0 opacity-45" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-8">
-        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr] xl:items-stretch">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-4 md:px-8 md:py-6">
+        <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
-            <CardHeader className="h-full pb-4">
-              <div className="grid h-full gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
-                <div className="flex h-full flex-col justify-between gap-10">
-                  <div className="space-y-4">
+            <CardHeader className="pb-3">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+                <div className="flex flex-col gap-5">
+                  <div className="space-y-3">
                     <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
                       口译控制台
                     </p>
                     <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
-                      实时口译笔记
+                      瀹炴椂鍙ｈ瘧绗旇
                     </h1>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-3 lg:max-w-[34rem]">
                     <MiniTile icon={AudioLines} title="流式状态" value="实时" />
                     <MiniTile icon={Bolt} title="刷新节奏" value="300ms" />
                     <MiniTile icon={Sparkles} title="模式" value="简洁" />
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col">
-                  <Card className="h-full border-border/70 bg-white/70">
-                    <CardContent className="grid h-full gap-4 p-5">
+                <div className="flex flex-col">
+                  <Card className="border-border/70 bg-white/70">
+                    <CardContent className="grid gap-4 p-5">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                            会话
+                            浼氳瘽
                           </p>
                           <p className="mt-1 text-sm font-medium text-foreground">{status}</p>
                         </div>
@@ -548,23 +546,11 @@ export default function App() {
             </CardHeader>
           </Card>
 
-          <Card className="h-full bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
+          <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-white">控制面板</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <ControlField
-                label="语言提示"
-                icon={Languages}
-                input={
-                  <Input
-                    value={language}
-                    onChange={(event) => setLanguage(event.target.value)}
-                    placeholder="zh / en / ja"
-                    className="border-white/10 bg-white/5 text-white placeholder:text-white/35"
-                  />
-                }
-              />
+            <CardContent className="grid gap-3">
               <ControlField
                 label="ASR 提供方"
                 icon={Activity}
@@ -633,7 +619,7 @@ export default function App() {
                 audioLevel={audioLevel}
               />
 
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-wrap gap-3 pt-1">
                 <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
                   开始监听
                 </Button>
@@ -660,7 +646,7 @@ export default function App() {
           </Card>
         </section>
 
-        <section className="mt-5 grid flex-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <section className="mt-4 grid flex-1 gap-4 xl:grid-cols-[0.92fr_1.08fr]">
           <StreamPane
             title="转写流"
             tag="ASR"
@@ -737,7 +723,7 @@ function ControlField({
   input,
 }: {
   label: string
-  icon: typeof Languages
+  icon: typeof Activity
   input: React.ReactNode
 }) {
   return (
@@ -836,8 +822,7 @@ function StreamPane({
             ))
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
-              暂无内容。
-            </div>
+              鏆傛棤鍐呭銆?            </div>
           )}
         </div>
       </CardContent>
