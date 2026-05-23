@@ -497,39 +497,39 @@ export default function App() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="glass-grid absolute inset-0 opacity-45" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-4 md:px-8 md:py-6">
-        <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
-          <Card className="overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))]">
-            <CardHeader className="pb-3">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-                <div className="flex flex-col gap-5">
-                  <div className="space-y-3">
+        <section className="grid gap-4 xl:grid-cols-[1.12fr_0.88fr] xl:items-stretch">
+          <Card className="min-h-[24rem] overflow-hidden border-transparent bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(249,251,247,0.72))] xl:h-full">
+            <CardHeader className="h-full pb-4">
+              <div className="grid h-full gap-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
+                <div className="flex h-full flex-col justify-between gap-6">
+                  <div className="space-y-4">
                     <p className="text-xs font-medium uppercase tracking-[0.28em] text-muted-foreground">
                       口译控制台
                     </p>
-                    <h1 className="max-w-3xl text-4xl font-semibold leading-[0.98] tracking-tight md:text-6xl">
+                    <h1 className="max-w-3xl text-5xl font-semibold leading-[0.94] tracking-tight md:text-7xl">
                       实时口译笔记
                     </h1>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-3 lg:max-w-[34rem]">
+                  <div className="grid gap-4 sm:grid-cols-3 lg:max-w-[40rem]">
                     <MiniTile icon={AudioLines} title="流式状态" value="实时" />
                     <MiniTile icon={Bolt} title="刷新节奏" value="300ms" />
                     <MiniTile icon={Sparkles} title="模式" value="简洁" />
                   </div>
                 </div>
 
-                <div className="flex flex-col">
-                  <Card className="border-border/70 bg-white/70">
-                    <CardContent className="grid gap-4 p-5">
+                <div className="flex h-full flex-col">
+                  <Card className="h-full border-border/70 bg-white/70">
+                    <CardContent className="grid h-full gap-5 p-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
                             会话
                           </p>
-                          <p className="mt-1 text-sm font-medium text-foreground">{status}</p>
+                          <p className="mt-2 text-xl font-semibold leading-tight text-foreground">{status}</p>
                         </div>
-                        <div className="rounded-full bg-primary/10 p-2 text-primary">
-                          <CircleDot className="h-4 w-4" />
+                        <div className="rounded-full bg-primary/10 p-2.5 text-primary">
+                          <CircleDot className="h-5 w-5" />
                         </div>
                       </div>
                       <Separator />
@@ -545,11 +545,11 @@ export default function App() {
             </CardHeader>
           </Card>
 
-          <Card className="bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white">
+          <Card className="min-h-[24rem] bg-[linear-gradient(180deg,rgba(17,23,20,0.95),rgba(22,30,25,0.92))] text-white xl:h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-white">控制面板</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3">
+            <CardContent className="grid h-full content-start gap-4">
               <ControlField
                 label="ASR 提供方"
                 icon={Activity}
@@ -699,12 +699,12 @@ function MiniTile({
 }) {
   return (
     <Card className="border-border/70 bg-white/72">
-      <CardContent className="p-4">
-        <div className="mb-2 inline-flex rounded-full bg-primary/10 p-2 text-primary">
-          <Icon className="h-3.5 w-3.5" />
+      <CardContent className="p-5">
+        <div className="mb-3 inline-flex rounded-full bg-primary/10 p-2.5 text-primary">
+          <Icon className="h-4 w-4" />
         </div>
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{title}</p>
-        <p className="mt-1 text-sm font-semibold">{value}</p>
+        <p className="mt-2 text-xl font-semibold leading-none">{value}</p>
       </CardContent>
     </Card>
   )
