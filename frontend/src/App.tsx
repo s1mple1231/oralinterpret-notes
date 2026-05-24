@@ -520,7 +520,7 @@ export default function App() {
 
                 <div className="flex h-full flex-col">
                   <Card className="h-full border-border/70 bg-white/70">
-                    <CardContent className="grid h-full gap-5 p-6">
+                    <CardContent className="grid h-full content-start gap-4 p-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -533,7 +533,7 @@ export default function App() {
                         </div>
                       </div>
                       <Separator />
-                      <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="grid grid-cols-3 gap-3 text-sm self-start">
                         <Metric icon={Radio} label="ASR" value={selectedAsr} />
                         <Metric icon={NotebookText} label="Notes" value={selectedNotes} />
                         <Metric icon={Gauge} label="Rate" value={`${targetSampleRate / 1000}k`} />
@@ -678,12 +678,12 @@ function Metric({
   value: string
 }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/70 p-3">
+    <div className="min-h-[7.5rem] rounded-2xl border border-border/70 bg-background/70 p-4">
       <div className="mb-2 flex items-center gap-2 text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[11px] uppercase tracking-[0.24em]">{label}</span>
       </div>
-      <p className="truncate text-sm font-medium text-foreground">{value}</p>
+      <p className="mt-4 truncate text-2xl font-semibold leading-none text-foreground">{value}</p>
     </div>
   )
 }
