@@ -683,7 +683,7 @@ function Metric({
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[11px] uppercase tracking-[0.24em]">{label}</span>
       </div>
-      <p className="truncate text-sm font-medium text-foreground">{value}</p>
+      <p className="mt-4 truncate text-sm font-medium text-foreground">{value}</p>
     </div>
   )
 }
@@ -755,9 +755,9 @@ function StreamPane({
             items.map((item) => (
               <div key={item.key} className="py-1.5">
                 <pre
-                  className={`whitespace-pre-wrap text-sm leading-7 ${
+                  className={`whitespace-pre-wrap text-sm leading-6 ${
                     noteMode
-                      ? "font-mono text-[13px] leading-6 tracking-tight text-foreground"
+                      ? "font-mono text-[13px] leading-5 tracking-tight text-foreground"
                       : "font-sans text-[14px] text-foreground"
                   }`}
                 >
