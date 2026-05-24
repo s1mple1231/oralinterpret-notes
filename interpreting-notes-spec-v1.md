@@ -166,6 +166,41 @@ Rules:
 - use arrows for directional relations
 - use `?` for doubt, unresolved issue, missing detail, or challenge
 
+## 8.1 Extended Symbol Inventory
+
+In addition to the default logic markers, the system may use the following compact symbols when they improve recall speed and do not create ambiguity:
+
+- `×` = wrong, bad, incorrect, rejected, notorious
+- `>` = more than, better than, surpass, increasingly
+- `<` = less than, fewer than, worse than, inferior to
+- `≥` = more than or equal to
+- `≤` = less than or equal to
+- `=` = equal, same as, match
+- `≠` = not equal, no match
+- `≈` = approximately, around
+- `∵` = because, due to
+- `∴` = therefore, consequently, as a result
+- `?` = question, doubt, unresolved issue
+- `√` = correct, affirmative, agreed, supported
+- `☆` = excellent, best, model, important
+- `:` = say, speak, tell, declare, protest, such as, like
+- `○` = meeting, conference, seminar, negotiation
+- `∪` = agreement, accord, treaty, contract
+- `&` = together with, accompany, and
+- `~` = exchange, replace, mutual
+- `//` = stop, halt, suspend
+- `{ }` = include, within, enclosed set
+- `☺` = happy, pleased, delighted
+- `☹` = sad, regretful
+- `><` = confrontation, conflict
+
+Rules:
+
+- do not force symbols where a short word is clearer
+- prefer stable reuse of the same symbol family within one session
+- if a symbol is rare or domain-specific, anchor it once with nearby text
+- symbols should shorten recall time, not create a decoding puzzle
+
 ## 9. Compression Rules
 
 The system should compress aggressively using the following rules:
@@ -188,6 +223,59 @@ Examples:
 
 - "this may create serious pressure on small exporters"
   -> `may -> small exporters pressure`
+
+## 9.1 Abbreviation Rules
+
+The system may use four abbreviation strategies:
+
+1. Existing standard abbreviations
+
+- UN, UNICEF, UNESCO, APEC, ASEAN, GDP, GNP, WTO, IMF, ROI, JV
+
+2. Single-letter or compact time/entity codes
+
+- `y` = year
+- `m` = month
+- `d` = day
+- `K` = Korea when locally established
+- `5YP` = Five-Year Plan
+
+3. Constructed English shorthand
+
+- retain first few letters: `resp` = responsibility, `info` = information
+- retain first and last letters when still recoverable
+- remove vowels if the result stays readable: `bcs` = because, `blv` = believe, `rgrds` = regards
+- preserve first syllable or stable stem where safer than over-compression
+
+4. Constructed Chinese shorthand
+
+- one Chinese character may stand for a repeated institutional phrase or concept
+- acceptable style examples:
+  - 社保 = 社会保障体系
+  - 野区 = 野生动物保护区
+  - 国标 = 国民经济发展指标 / 国家标准 depending on session context
+  - 粤府 = 广东省人民政府
+  - 物精 = 物质文明与精神文明
+  - 改开 = 改革开放
+  - 4M = 四个现代化
+
+Rules:
+
+- only shorten when the result is still easy to recover on reread
+- preserve one stable abbreviation per repeated concept in a session
+- if multiple possible meanings exist, prefer the safer or fuller form
+- keep names, money, percentages, and dates more exact than ordinary nouns
+
+## 9.2 Time and Sequence Shortcuts
+
+Compact time marks are encouraged when obvious:
+
+- `LY` or `y-1` = last year
+- `NY` or `y+1` = next year
+- `m+1` = next month
+- `d-1` = previous day
+
+The time marker may appear before or after the anchor term as long as scan speed is preserved.
 
 ## 10. Language Style
 
@@ -221,6 +309,17 @@ election factor +
 
 CN concern:
 supply chain / cost / timing
+```
+
+The mixed mode may also include compact Sino-English shorthand such as:
+
+```text
+UK-CN rel >
+but trust <
+
+社保 reform
+粤府 support √
+国标 still ?
 ```
 
 ## 11. Entity Handling

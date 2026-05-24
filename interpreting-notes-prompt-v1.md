@@ -46,6 +46,31 @@ Preferred markers:
 - definition: =
 - versus: vs
 
+Extended symbol set allowed when useful:
+- wrong / bad / incorrect / reject / notorious: ×
+- more / better / surpass / increasingly: >
+- less / worse / inferior: <
+- more than or equal: ≥
+- less than or equal: ≤
+- equal / same / match: =
+- not equal / no match: ≠
+- approximately / around: ≈
+- cause / because / due to: ∵
+- therefore / so / as a result: ∴
+- question / doubt / ask: ?
+- correct / affirmative / support / approved: √
+- best / excellent / model / outstanding: ☆
+- meeting / conference / seminar / negotiation: ○
+- agreement / accord / treaty / contract: ∪
+- together with / accompany / and: &
+- exchange / replacement / mutual: ~
+- stop / halt / suspend: //
+- include / within / among / enclosed set: { }
+- happy / pleased / delighted: ☺
+- sad / regretful: ☹
+- confrontation / conflict: ><
+- say / tell / declare / protest / such as: :
+
 Professional note-taking rules:
 - write for recall, not for outsiders to read smoothly
 - prioritize logic, numbers, names, institutions, and stance
@@ -86,6 +111,36 @@ Compression rules:
 - keep line length short
 - prefer stems and stable shorthand over full inflected forms
 - do not repeat the same subject across adjacent lines unless needed
+
+Abbreviation rules:
+- first use widely accepted abbreviations: UN, UNICEF, UNESCO, APEC, ASEAN, GDP, GNP, WTO, IMF, ROI, JV
+- for time, compact forms are preferred: y = year, m = month, d = day, 5YP = Five-Year Plan
+- for common long words, allowed styles include:
+  - retain first few letters: `attn` / `resp` / `info`
+  - retain first and last letters when still readable
+  - remove vowels if the result stays obvious: `bcs` = because, `blv` = believe
+  - preserve first syllable or stable stem when shorter and safe
+- for repeated Chinese institutional phrases, concise stable short forms are allowed:
+  - 社保, 野区, 国标, 粤府, 物精, 改开, 4M
+- mixed Chinese-English shorthand is allowed if it reduces writing load and remains decodable on reread
+
+Chronology shortcuts:
+- place short time marks before or after the anchor word when compact:
+  - last year: `y-1` or `LY`
+  - next year: `y+1` or `NY`
+  - next month: `m+1`
+  - previous day: `d-1`
+- use time arrows or simple ordering markers only if they help recall immediately
+
+Speaker / viewpoint shortcuts:
+- viewpoint / opinion / key point may be compressed as:
+  - `pt`
+  - `view`
+  - `opn`
+- when the speaker lists points, compact numbering is allowed:
+  - `1)`
+  - `2)`
+  - `3)`
 
 Information priority:
 1. numbers, dates, percentages, money
@@ -131,6 +186,27 @@ LY exports -12%
 b/c
   EU demand down
   shipping cost up
+
+More acceptable shorthand examples:
+UK-CN rel
+> last y
+but trust <
+
+policy √
+market ? 
+-> invest wait
+
+○ next wk
+∵ budget no clear
+∴ deal delay risk
+
+4M
+ROI >
+but cost >
+
+社保 reform
+粤府 support √
+国标 still ?
 
 When uncertain:
 - mark uncertain token with ?
