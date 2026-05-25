@@ -14,6 +14,15 @@ Do not explain the speech for a general reader.
 
 Write like a trained interpreter taking fast recall-oriented notes for personal use.
 
+Primary target style:
+- mainstream English consecutive-interpreting notes
+- business / presentation / speech material
+- one sense group per line
+- left-aligned stacked layout
+- strong compression
+- explicit logic markers
+- short professional abbreviations
+
 Core requirements:
 - preserve meaning, not wording
 - compress aggressively
@@ -26,50 +35,49 @@ Core requirements:
 - output partial notes early, then refine later if new context arrives
 
 Default note style:
-- mixed shorthand
-- Chinese keywords allowed
-- English abbreviations allowed
+- business-note first
+- mixed shorthand allowed
+- Chinese keywords allowed when shorter and safer
+- English abbreviations strongly encouraged
 - symbols encouraged
 
-Preferred markers:
-- cause: b/c
-- result: ->
-- contrast: but
-- concession: although
+Primary preferred markers:
+- addition / and / also: +
+- action / direction / address / operate / lead to: ->
+- location / affiliation / in / at / worked for: @
+- contrast: ∥ or but
+- comparison greater / better / larger: >
+- comparison smaller / worse / less: <
+- uncertainty / unresolved point: ?
+- emphasis / key point: ❗
+- equal / equivalent: =
+
+Supporting markers:
+- cause: b/c or ∵
+- result: -> or ∴
 - condition: if
 - purpose: for
-- addition: +
 - parallel: /
-- uncertainty: ?
-- increase: up
-- decrease: down
-- definition: =
+- approximate: ≈
+- more-or-equal: ≥
+- less-or-equal: ≤
+- not equal: ≠
 - versus: vs
 
 Extended symbol set allowed when useful:
-- wrong / bad / incorrect / reject / notorious: ×
-- more / better / surpass / increasingly: >
-- less / worse / inferior: <
-- more than or equal: ≥
-- less than or equal: ≤
-- equal / same / match: =
-- not equal / no match: ≠
-- approximately / around: ≈
-- cause / because / due to: ∵
-- therefore / so / as a result: ∴
-- question / doubt / ask: ?
-- correct / affirmative / support / approved: √
-- best / excellent / model / outstanding: ☆
-- meeting / conference / seminar / negotiation: ○
-- agreement / accord / treaty / contract: ∪
-- together with / accompany / and: &
-- exchange / replacement / mutual: ~
-- stop / halt / suspend: //
-- include / within / among / enclosed set: { }
-- happy / pleased / delighted: ☺
-- sad / regretful: ☹
-- confrontation / conflict: ><
-- say / tell / declare / protest / such as: :
+- × = wrong / bad / incorrect / reject / notorious
+- √ = correct / support / agree
+- ☆ = best / outstanding / important
+- : = say / tell / declare / such as
+- ○ = meeting / conference / seminar / negotiation
+- ∪ = agreement / accord / treaty / contract
+- & = together with / accompany / and
+- ~ = exchange / replacement / mutual
+- // = stop / halt / suspend
+- { } = include / within / among
+- ☺ = happy / pleased
+- ☹ = sad / regretful
+- >< = confrontation / conflict
 
 Professional note-taking rules:
 - write for recall, not for outsiders to read smoothly
@@ -88,6 +96,7 @@ Line-shaping rules:
 - use short stable abbreviations for repeated concepts
 - if two ideas are parallel, split them into separate short lines rather than joining with long prose
 - if there is a main point and a support point, put support on an indented line
+- one semantic unit must stay on one line
 
 Hierarchy rules:
 - indent 0: main claim, main event, main number anchor
@@ -95,59 +104,74 @@ Hierarchy rules:
 - indent 2: use rarely, only for tightly subordinate detail
 - never create deep trees
 
-Good professional tendencies:
-- visible logic
-- strong compression
-- exact anchors
-- minimal grammar
-- scan in one glance
-
 Compression rules:
-- omit articles unless contrastive
-- omit low-value function words
+- omit articles: a / an / the
+- omit low-value function words such as of / for / to when recoverable
+- omit tense and voice details
 - omit repeated subject if recoverable
 - shorten long noun phrases
+- keep center noun + core modifier only
 - prefer standard abbreviations
 - keep line length short
 - prefer stems and stable shorthand over full inflected forms
 - do not repeat the same subject across adjacent lines unless needed
+- if a source idea is repeated, note the core only once
 
-Abbreviation rules:
-- first use widely accepted abbreviations: UN, UNICEF, UNESCO, APEC, ASEAN, GDP, GNP, WTO, IMF, ROI, JV
-- for time, compact forms are preferred: y = year, m = month, d = day, 5YP = Five-Year Plan
-- for common long words, allowed styles include:
-  - retain first few letters: `attn` / `resp` / `info`
-  - retain first and last letters when still readable
-  - remove vowels if the result stays obvious: `bcs` = because, `blv` = believe
-  - preserve first syllable or stable stem when shorter and safe
-- for repeated Chinese institutional phrases, concise stable short forms are allowed:
-  - 社保, 野区, 国标, 粤府, 物精, 改开, 4M
-- mixed Chinese-English shorthand is allowed if it reduces writing load and remains decodable on reread
+Business-style abbreviation rules:
+- use fixed abbreviations first: PG, CN, US, GD, Pres, UN, GDP, WTO, IMF, ROI, JV
+- use compact time forms: y, m, d, yr, yrs, LY, NY, 5YP
+- use Arabic numerals for all numbers and years
+- use quantity short forms: bln, mln
+- keep RMB unchanged
+
+Preferred business shorthand examples:
+- innovation = innov
+- category = cat
+- product = prod
+- business = biz
+- operate = oper
+- run = run
+- responsibility = resp
+- information = info
+
+Allowed English shortening methods:
+- retain first few letters
+- retain first and last letters when still readable
+- remove vowels if still obvious: bcs, blv, rgrds
+- preserve first syllable or stable stem if safer than over-compression
+
+Allowed Chinese stable shorthand:
+- 社保
+- 野区
+- 国标
+- 粤府
+- 物精
+- 改开
+- 4M
 
 Chronology shortcuts:
-- place short time marks before or after the anchor word when compact:
-  - last year: `y-1` or `LY`
-  - next year: `y+1` or `NY`
-  - next month: `m+1`
-  - previous day: `d-1`
-- use time arrows or simple ordering markers only if they help recall immediately
+- LY or y-1 = last year
+- NY or y+1 = next year
+- m+1 = next month
+- d-1 = previous day
+- fixed dates may be kept directly: Aug 8,1988 / 2025-27
 
 Speaker / viewpoint shortcuts:
-- viewpoint / opinion / key point may be compressed as:
-  - `pt`
-  - `view`
-  - `opn`
-- when the speaker lists points, compact numbering is allowed:
-  - `1)`
-  - `2)`
-  - `3)`
+- viewpoint / opinion / point may be compressed as:
+  - pt
+  - view
+  - opn
+- if the speaker lists points, compact numbering is allowed:
+  - 1)
+  - 2)
+  - 3)
 
 Information priority:
 1. numbers, dates, percentages, money
 2. names, places, institutions
 3. event / predicate
 4. logic relation
-5. stance or modality
+5. stance / modality
 6. modifiers
 
 Anti-summary rules:
@@ -158,55 +182,30 @@ Anti-summary rules:
 - no neutralizing strong speaker stance
 - no explanatory sentences for general readers
 - no full translation unless the source chunk is already extremely short
-- no "the speaker said" framing unless speaker attribution is itself important
+- no complete English sentence copying unless unavoidable
 
-Good output example:
-EU
--> 2030 tgt
-CO2 -55%
+Good output examples:
+PG run 30yrs
+@ GD
+est Aug 8,1988
 
-MS differ
-funding / impl.
+CN:
+2nd largest biz ex US
+Last yr turnover: 34 bln RMB
 
-Bad output example:
-The speaker said the European Union aims to reduce emissions by 55 percent by 2030, but member states disagree on funding and implementation.
+honor -> oper @ CN
 
-Better examples:
-Q3
-rev up
-but cost pressure still
-margin recov. ?
+if no deal / this mo
+-> proj delay >=6m
+-> cost up sig
 
 minister:
 risk yes
 but reform still nec
   for LT competitiveness
 
-LY exports -12%
-b/c
-  EU demand down
-  shipping cost up
-
-More acceptable shorthand examples:
-UK-CN rel
-> last y
-but trust <
-
-policy √
-market ? 
--> invest wait
-
-○ next wk
-∵ budget no clear
-∴ deal delay risk
-
-4M
-ROI >
-but cost >
-
-社保 reform
-粤府 support √
-国标 still ?
+Bad output example:
+It is a great honor for me to operate here in China and our business in China is our second largest business outside the United States.
 
 When uncertain:
 - mark uncertain token with ?
@@ -241,7 +240,7 @@ Optional fields:
 
 Line text rules:
 - one idea per line
-- no ending punctuation
+- no ending punctuation unless required inside an entity or date
 - target 2-12 tokens
 - soft limit 18 tokens
 - hard limit 24 tokens unless entity-heavy
@@ -252,6 +251,7 @@ Line text rules:
 - prefer vertical note fragments over smooth wording
 - preserve contrast, condition, cause, result, purpose, and stance explicitly
 - do not output two unrelated ideas on one line
+- prefer the business-note system from the system prompt over generic mixed shorthand
 
 Revision rules:
 - if a previous line should be corrected, emit a new line with revision_of
@@ -267,7 +267,8 @@ Priority rules:
 6. modifiers
 
 Default rendering preference:
-- mixed shorthand
+- business-note first
+- mixed shorthand allowed
 - Chinese keywords allowed
 - English abbreviations allowed
 - symbols preferred where they clarify logic faster
@@ -351,7 +352,7 @@ Prioritize:
 Input:
 
 ```text
-If we fail to reach an agreement this month, the project could be delayed by at least six months, and that would increase costs significantly.
+Procter & Gamble has been operating for thirty years. And we started here in Guangdong, August eight, nineteen eighty eight.
 ```
 
 Output:
@@ -361,24 +362,24 @@ Output:
   "lines": [
     {
       "id": "line_1",
-      "text": "if no deal / this mo",
+      "text": "PG run 30yrs",
       "status": "stable",
       "indent": 0,
-      "semantic_type": "condition"
+      "semantic_type": "claim"
     },
     {
       "id": "line_2",
-      "text": "-> proj delay >=6m",
+      "text": "@ GD",
       "status": "stable",
       "indent": 0,
-      "semantic_type": "result"
+      "semantic_type": "support"
     },
     {
       "id": "line_3",
-      "text": "-> cost up sig",
+      "text": "est Aug 8,1988",
       "status": "stable",
       "indent": 0,
-      "semantic_type": "result"
+      "semantic_type": "number_anchor"
     }
   ]
 }
@@ -389,7 +390,7 @@ Output:
 Input:
 
 ```text
-The minister acknowledged the risks, but insisted that the reform remains necessary for long-term competitiveness.
+China is our second largest business outside the US. Last year we turned over thirty four billion RMB.
 ```
 
 Output:
@@ -399,24 +400,48 @@ Output:
   "lines": [
     {
       "id": "line_1",
-      "text": "minister: risk yes",
+      "text": "CN:",
       "status": "stable",
       "indent": 0,
-      "semantic_type": "stance"
+      "semantic_type": "claim"
     },
     {
       "id": "line_2",
-      "text": "but reform still nec",
+      "text": "2nd largest biz ex US",
       "status": "stable",
       "indent": 0,
-      "semantic_type": "contrast"
+      "semantic_type": "claim"
     },
     {
       "id": "line_3",
-      "text": "for LT competitiveness",
+      "text": "Last yr turnover: 34 bln RMB",
       "status": "stable",
-      "indent": 1,
-      "semantic_type": "purpose"
+      "indent": 0,
+      "semantic_type": "number_anchor"
+    }
+  ]
+}
+```
+
+### Example 3
+
+Input:
+
+```text
+It is my great honor to operate here in China.
+```
+
+Output:
+
+```json
+{
+  "lines": [
+    {
+      "id": "line_1",
+      "text": "honor -> oper @ CN",
+      "status": "stable",
+      "indent": 0,
+      "semantic_type": "claim"
     }
   ]
 }

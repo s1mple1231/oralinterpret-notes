@@ -6,13 +6,7 @@ This spec defines the output format for a system that listens to live speech and
 
 The output is not meeting minutes, not a full transcript, and not polished summarization.
 
-The output must resemble human consecutive/simultaneous interpreting notes:
-
-- compressed
-- structural
-- symbol-heavy
-- recall-oriented
-- easy to scan in 1-2 seconds
+The primary target style is **mainstream English consecutive-interpreting note-taking for business speeches, presentations, and formal remarks**, with high compression, explicit logic, and stable professional shorthand.
 
 Primary use case:
 
@@ -20,7 +14,7 @@ Primary use case:
 - support short-lag oral reformulation
 - reduce memory load during live listening
 
-## 2. Design Principles
+## 2. Core Design Principles
 
 The system must follow these principles:
 
@@ -30,6 +24,7 @@ The system must follow these principles:
 - Structure first: show relations between ideas explicitly.
 - Real-time first: produce useful partial notes before the sentence fully ends.
 - Editable first: allow later correction when upstream ASR changes.
+- Business-note first: when multiple shorthand styles are possible, prefer the compact business/consecutive style defined below.
 
 ## 3. Non-Goals
 
@@ -41,6 +36,7 @@ The system must not default to:
 - article-style summary
 - speaker attribution on every line unless needed
 - filler words such as "well", "you know", "I mean"
+- diary-like prose or smooth explanatory text for outsiders
 
 Bad output example:
 
@@ -56,10 +52,36 @@ EU
 CO2 -55%
 
 MS differ
-funding / impl.
+funding / impl
 ```
 
-## 4. Output Unit
+## 4. Overall Layout Rules
+
+This project should follow the mainstream consecutive-interpreting layout standard:
+
+1. **Vertical note flow**
+
+- write one sense group per line
+- do not write full sentences across one long line
+- split main clause, support, condition, cause, and contrast into separate lines when possible
+
+2. **Left alignment**
+
+- every note starts from the left
+- do not center or right-align note content
+- in handwritten practice, the right side is reserved for 补充 / 修正; in product form, keep the rendering visually left-anchored
+
+3. **One semantic unit per line**
+
+- each line should carry one idea, one action, one relation, or one anchor
+- a semantic unit should not be awkwardly split across multiple lines
+
+4. **No prose blocks**
+
+- stacked lines are the default visual form
+- blank lines are allowed only between clusters, not between every note item
+
+## 5. Output Unit
 
 The core output unit is the note line.
 
@@ -76,37 +98,15 @@ Each note line should represent one of:
 
 Preferred line length:
 
-- 4 to 18 visible tokens
+- 2 to 12 tokens
+
+Soft upper limit:
+
+- 18 visible tokens
 
 Hard limit:
 
-- 30 visible tokens unless the content is a named entity or technical phrase
-
-## 5. Canonical Visual Form
-
-The default visual form should be short stacked lines, not paragraphs.
-
-Example:
-
-```text
-govt plan
--> next 3y
-
-focus:
-infra / jobs / AI
-
-if budget no pass
--> delay risk
-```
-
-Formatting rules:
-
-- one idea per line
-- blank lines allowed between clusters
-- indentation allowed for subordination
-- no bullet punctuation required
-- no ending period
-- keep casing lightweight and consistent
+- 24 visible tokens unless the content is a named entity or technical phrase
 
 ## 6. Information Priority
 
@@ -136,39 +136,41 @@ The system should try to preserve the following whenever present:
 - how much
 - whether the speaker is certain, doubtful, supportive, critical, warning, or proposing
 
-## 8. Logic Markers
+## 8. Core Logic Marker System
 
-The system should normalize logical relations into compact markers.
+This project should prefer the following compact marker family as the **default business interpreting note system**:
 
-Preferred markers:
+- addition / and / also: `+`
+- action / direction / address / operate / lead to: `->`
+- place / affiliation / in / at / based in / worked for: `@`
+- contrast / however / although / but: `∥` or `but`
+- comparison greater / better / larger: `>`
+- comparison smaller / worse / less: `<`
+- uncertainty / problem / unresolved point: `?`
+- emphasis / key point: `❗`
+- equality / equivalent / same as: `=`
 
-- cause: `b/c`
-- result: `->`
-- contrast: `but`
-- concession: `although`
-- condition: `if`
-- purpose: `for`
-- addition: `+`
+Recommended supporting markers:
+
+- cause: `b/c` or `∵`
+- result / therefore: `->` or `∴`
 - parallel items: `/`
-- uncertainty: `?`
-- increase: `up`
-- decrease: `down`
-- improvement: `+`
-- deterioration: `-`
-- equals / definition: `=`
 - versus: `vs`
-- leads to / therefore: `->`
+- approximate: `≈`
+- more-or-equal: `≥`
+- less-or-equal: `≤`
+- not equal / mismatch: `≠`
 
 Rules:
 
-- prefer one marker family consistently
-- avoid mixing too many synonymous markers
-- use arrows for directional relations
-- use `?` for doubt, unresolved issue, missing detail, or challenge
+- prefer one consistent marker family within one session
+- do not mix too many synonymous markers
+- use symbols instead of full conjunction words when the relation is obvious
+- use `?` only on the uncertain token or uncertain relation
 
 ## 8.1 Extended Symbol Inventory
 
-In addition to the default logic markers, the system may use the following compact symbols when they improve recall speed and do not create ambiguity:
+In addition to the default logic markers, the following symbols are allowed when they clearly improve recall speed:
 
 - `×` = wrong, bad, incorrect, rejected, notorious
 - `>` = more than, better than, surpass, increasingly
@@ -198,129 +200,129 @@ Rules:
 
 - do not force symbols where a short word is clearer
 - prefer stable reuse of the same symbol family within one session
-- if a symbol is rare or domain-specific, anchor it once with nearby text
 - symbols should shorten recall time, not create a decoding puzzle
 
 ## 9. Compression Rules
 
 The system should compress aggressively using the following rules:
 
-- omit articles unless contrastive
-- omit copulas unless needed for clarity
+- omit articles: `a`, `an`, `the`
+- omit simple low-value function words: `of`, `for`, `to`, and similar fillers when meaning remains recoverable
+- omit tense marking and voice marking
 - omit repeated subject if locally recoverable
 - collapse long noun phrases into headword + key modifier
-- prefer stems over inflected forms
-- prefer domain abbreviations when common
-- merge repeated frames across adjacent lines
+- preserve center noun + core adjective only
+- avoid rewriting ideas into polished clauses
+- if content repeats, record the core only once
 
 Examples:
 
-- "the company is planning to expand production in Southeast Asia next year"
-  -> `co plan expand SEA / next yr`
+- `It is a great honor for me to address you`
+  -> `honor -> speak`
 
-- "because demand in Europe has fallen sharply"
+- `the most exciting, most dynamic, most interesting market`
+  -> `market: most exciting, dynamic, interesting`
+
+- `because demand in Europe has fallen sharply`
   -> `b/c EU demand down sharp`
-
-- "this may create serious pressure on small exporters"
-  -> `may -> small exporters pressure`
 
 ## 9.1 Abbreviation Rules
 
-The system may use four abbreviation strategies:
+The system should use four main abbreviation strategies, in this priority order:
 
-1. Existing standard abbreviations
+### 1. Fixed established abbreviations first
 
 - UN, UNICEF, UNESCO, APEC, ASEAN, GDP, GNP, WTO, IMF, ROI, JV
+- PG = Procter & Gamble
+- CN = China
+- US = United States
+- GD = Guangdong
+- Pres = President
 
-2. Single-letter or compact time/entity codes
+### 2. Time / number shorthand
 
 - `y` = year
 - `m` = month
 - `d` = day
-- `K` = Korea when locally established
+- `yr` / `yrs` = year / years
+- `LY` = last year
+- `NY` = next year
 - `5YP` = Five-Year Plan
+- `bln` = billion
+- `mln` = million
+- keep `RMB` unchanged
+- keep all numbers in Arabic numerals
 
-3. Constructed English shorthand
+### 3. Constructed English shorthand
 
-- retain first few letters: `resp` = responsibility, `info` = information
+Use stable business-style clipping:
+
+- `innov` = innovation
+- `cat` = category
+- `prod` = product
+- `biz` = business
+- `oper` = operate
+- `run` = run / operate
+- `resp` = responsibility
+- `info` = information
+
+Allowed methods:
+
+- retain first few letters
 - retain first and last letters when still recoverable
-- remove vowels if the result stays readable: `bcs` = because, `blv` = believe, `rgrds` = regards
-- preserve first syllable or stable stem where safer than over-compression
+- remove vowels if the result stays readable: `bcs`, `blv`, `rgrds`
+- preserve first syllable or stable stem when safer than over-compression
 
-4. Constructed Chinese shorthand
+### 4. Constructed Chinese shorthand
 
-- one Chinese character may stand for a repeated institutional phrase or concept
-- acceptable style examples:
-  - 社保 = 社会保障体系
-  - 野区 = 野生动物保护区
-  - 国标 = 国民经济发展指标 / 国家标准 depending on session context
-  - 粤府 = 广东省人民政府
-  - 物精 = 物质文明与精神文明
-  - 改开 = 改革开放
-  - 4M = 四个现代化
+Chinese compression is allowed when stable and decodable on reread:
+
+- `社保`
+- `野区`
+- `国标`
+- `粤府`
+- `物精`
+- `改开`
+- `4M`
 
 Rules:
 
-- only shorten when the result is still easy to recover on reread
+- only shorten when the result is still easy to recover
 - preserve one stable abbreviation per repeated concept in a session
-- if multiple possible meanings exist, prefer the safer or fuller form
-- keep names, money, percentages, and dates more exact than ordinary nouns
+- names, money, percentages, and dates must stay more exact than ordinary nouns
 
 ## 9.2 Time and Sequence Shortcuts
 
-Compact time marks are encouraged when obvious:
+Compact time marks are encouraged:
 
 - `LY` or `y-1` = last year
 - `NY` or `y+1` = next year
 - `m+1` = next month
 - `d-1` = previous day
 
-The time marker may appear before or after the anchor term as long as scan speed is preserved.
+For fixed dates, preserve direct compact form:
+
+- `Aug 8,1988`
+- `2025-27`
 
 ## 10. Language Style
 
-The default language style is mixed shorthand, not pure prose.
+The primary style for this project is:
 
-Recommended defaults:
+- business/conference consecutive note style
+- English-heavy shorthand for English speeches
+- mixed shorthand allowed when it improves recall
 
-- output may mix Chinese keywords, English stems, numbers, and symbols
-- technical terms may remain in source-language form if shorter or safer
-- named entities should remain stable across updates
-- use Chinese for general connectors only if the whole style is Chinese-leaning
+Default mode:
 
-Recommended v1 modes:
+- `mixed`, but biased toward the user-provided business-note system above
 
-- `mixed`: Chinese keywords + English abbreviations + symbols
-- `en_short`: English-heavy shorthand
-- `zh_short`: Chinese-heavy shorthand
+That means:
 
-Default mode for v1:
-
-- `mixed`
-
-Example in mixed mode:
-
-```text
-US
--> tariff maybe up
-
-b/c dom. pressure
-election factor +
-
-CN concern:
-supply chain / cost / timing
-```
-
-The mixed mode may also include compact Sino-English shorthand such as:
-
-```text
-UK-CN rel >
-but trust <
-
-社保 reform
-粤府 support √
-国标 still ?
-```
+- use Chinese keywords if shorter and safer
+- use English abbreviations when they are standard or efficient
+- do not force fully Chinese or fully English output
+- keep named entities stable
 
 ## 11. Entity Handling
 
@@ -338,7 +340,7 @@ Examples:
 
 - `International Monetary Fund` -> `IMF`
 - `World Trade Organization` -> `WTO`
-- `3.8 billion dollars` -> `$3.8bn`
+- `3.8 billion RMB` -> `3.8 bln RMB`
 - uncertain name -> `Miller?`
 
 ## 12. Number Policy
@@ -356,8 +358,9 @@ Examples:
 
 - `35 percent` -> `35%`
 - `between 2025 and 2027` -> `2025-27`
-- `an increase of 2.4 million` -> `+2.4m`
+- `an increase of 2.4 million` -> `+2.4 mln`
 - `less than 10 days` -> `<10d`
+- `thirty four billion RMB` -> `34 bln RMB`
 
 ## 13. Hierarchy Rules
 
@@ -373,13 +376,13 @@ Allowed structures:
 Example:
 
 ```text
-energy reform
-  -> price lib.
-  -> subsidy cut
+PG run 30yrs
+  @ GD
+  est Aug 8,1988
 
-risk:
-  public backlash
-  inflation up
+CN
+2nd largest biz ex US
+Last yr turnover: 34 bln RMB
 ```
 
 Hierarchy constraints:
@@ -401,7 +404,7 @@ Pass 1: provisional fragment
 Pass 2: stabilization
 
 - fill in missing predicate or relation
-- normalize wording
+- normalize shorthand
 - merge duplicates
 
 Pass 3: correction
@@ -426,6 +429,7 @@ Reject these tendencies:
 - abstract labels with no anchors
 - omitting numbers in favor of vague summaries
 - replacing speaker stance with neutral wording
+- complete sentence copying from the source
 
 Bad:
 
@@ -437,7 +441,7 @@ Good:
 
 ```text
 reform
-+ opp.
++ opp
 - challenge
 
 key:
@@ -476,7 +480,7 @@ Examples of custom mappings:
 
 - `artificial intelligence` -> `AI`
 - `carbon border adjustment mechanism` -> `CBAM`
-- `supply chain resilience` -> `SC resil.`
+- `supply chain resilience` -> `SC resil`
 
 ## 18. Output Schema
 
@@ -525,8 +529,7 @@ The note generator prompt should explicitly instruct:
 - compress aggressively
 - prefer memory cues over grammatical completeness
 - output partial notes early and refine later
-
-The prompt should also include a small style table, a few positive examples, and a few negative examples.
+- prefer the business-note shorthand system in sections 4-9
 
 ## 20. Evaluation Criteria
 
@@ -555,7 +558,7 @@ For a practical v1, the system should support:
 
 - single active speaker priority
 - 1-3 second update cadence
-- mixed shorthand mode
+- mixed shorthand mode with business-note bias
 - glossary injection
 - line revision for ASR corrections
 - optional side-by-side transcript and notes
@@ -573,46 +576,54 @@ The system should not require in v1:
 
 Source:
 
-"If we fail to reach an agreement this month, the project could be delayed by at least six months, and that would increase costs significantly."
+`Procter & Gamble has been operating for thirty years. And we started here in Guangdong, August eight, nineteen eighty eight.`
 
 Target notes:
 
 ```text
-if no deal / this mo
--> proj delay >=6m
--> cost up sig.
+PG run 30yrs
+@ GD
+est Aug 8,1988
 ```
 
 ### Example B
 
 Source:
 
-"The minister acknowledged the risks, but insisted that the reform remains necessary for long-term competitiveness."
+`China is our second largest business outside the US. Last year we turned over thirty four billion RMB.`
 
 Target notes:
 
 ```text
-minister:
-risk yes
-but reform still nec.
-
-for LT competitiveness
+CN:
+2nd largest biz ex US
+Last yr turnover: 34 bln RMB
 ```
 
 ### Example C
 
 Source:
 
-"Last year exports fell by 12 percent, mainly because demand in Europe weakened and shipping costs rose."
+`It is my great honor to operate here in China.`
 
 Target notes:
 
 ```text
-LY exports -12%
+honor -> oper @ CN
+```
 
-b/c
-EU demand down
-shipping cost up
+### Example D
+
+Source:
+
+`If we fail to reach an agreement this month, the project could be delayed by at least six months, and that would increase costs significantly.`
+
+Target notes:
+
+```text
+if no deal / this mo
+-> proj delay >=6m
+-> cost up sig
 ```
 
 ## 23. Acceptance Rule
