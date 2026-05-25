@@ -741,6 +741,11 @@ function StreamPane({
   items: { key: string; status: string; title: string; body: string }[]
   noteMode?: boolean
 }) {
+  const mergedBody = items
+    .map((item) => item.body.trim())
+    .filter(Boolean)
+    .join("\n")
+
   return (
     <Card className="flex min-h-[42rem] flex-col">
       <CardHeader className="pb-4">
@@ -750,21 +755,17 @@ function StreamPane({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="grid gap-1.5">
-          {items.length ? (
-            items.map((item) => (
-              <div key={item.key} className="py-1.5">
-                <pre
-                  className={`whitespace-pre-wrap text-sm leading-6 ${
-                    noteMode
-                      ? "font-mono text-[13px] leading-5 tracking-tight text-foreground"
-                      : "font-sans text-[14px] text-foreground"
-                  }`}
-                >
-                  {item.body}
-                </pre>
-              </div>
-            ))
+        <div>
+          {mergedBody ? (
+            <pre
+              className={`whitespace-pre-wrap text-sm leading-5 ${
+                noteMode
+                  ? "font-mono text-[13px] tracking-tight text-foreground"
+                  : "font-sans text-[14px] text-foreground"
+              }`}
+            >
+              {mergedBody}
+            </pre>
           ) : (
             <div className="flex min-h-[24rem] items-center justify-center rounded-[24px] border border-dashed border-border bg-muted/40 px-6 text-center text-sm leading-7 text-muted-foreground">
               暂无内容。
