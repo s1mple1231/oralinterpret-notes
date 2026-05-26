@@ -171,6 +171,39 @@ export default function App() {
   const statePollTimerRef = useRef<number | null>(null)
   const sampleBuffersRef = useRef<Int16Array[]>([])
   const sessionIdRef = useRef<string | null>(null)
+  const transcriptsRef = useRef<Map<string, TranscriptItem>>(new Map())
+  const notesRef = useRef<Map<string, NotesItem>>(new Map())
+  const displaySessionRef = useRef<{
+    sessionId: string | null
+    transcriptOrderOffset: number
+    noteOrderOffset: number
+  }>({
+    sessionId: null,
+    transcriptOrderOffset: 0,
+    noteOrderOffset: 0,
+  })
+
+  function getMaxOrder<T extends { order: number }>(items: Map<string, T>) {
+    let maxOrder = 0
+    for (const item of items.values()) {
+      if (item.order > maxOrder) {
+        maxOrder = item.order
+      }
+    }
+    return maxOrder
+  }
+
+  function ensureDisplaySession(nextSessionId: string | null) {
+    if (!nextSessionId || displaySessionRef.current.sessionId === nextSessionId) {
+      return
+    }
+
+    displaySessionRef.current = {
+      sessionId: nextSessionId,
+      transcriptOrderOffset: getMaxOrder(transcriptsRef.current),
+      noteOrderOffset: getMaxOrder(notesRef.current),
+    }
+  }
 
   function syncProviderSelections(summary: ProviderSummary) {
     setProviders(summary)
@@ -189,6 +222,7 @@ export default function App() {
     setSessionId(payload.sessionId || null)
     sessionIdRef.current = payload.sessionId || null
     setTargetSampleRate(payload.audio?.sampleRate || 16000)
+    ensureDisplaySession(payload.sessionId || null)
     if (payload.providers) {
       syncProviderSelections(payload.providers)
     }
@@ -199,29 +233,34 @@ export default function App() {
     setTranscripts((previous) => {
       const next = new Map(previous)
       for (const item of payload.transcript ?? []) {
-        next.set(item.itemId, {
-          itemId: item.itemId,
-          order: item.order,
+        const displayKey = `${payload.sessionId || "session"}:${item.itemId}`
+        next.set(displayKey, {
+          itemId: displayKey,
+          order: displaySessionRef.current.transcriptOrderOffset + item.order,
           status: item.status,
           text: item.final || item.delta || item.text || "",
         })
       }
+      transcriptsRef.current = next
       return next
     })
 
     setNotes((previous) => {
       const next = new Map(previous)
       for (const item of payload.notes ?? []) {
-        next.set(item.itemId, {
-          itemId: item.itemId,
+        const displayKey = `${payload.sessionId || "session"}:${item.itemId}`
+        const transcriptDisplayKey = `${payload.sessionId || "session"}:${item.itemId}`
+        next.set(displayKey, {
+          itemId: displayKey,
           order:
-            payload.transcript?.find((entry) => entry.itemId === item.itemId)?.order ||
-            previous.get(item.itemId)?.order ||
-            0,
+            transcriptsRef.current.get(transcriptDisplayKey)?.order ||
+            previous.get(displayKey)?.order ||
+            displaySessionRef.current.noteOrderOffset + 1,
           status: item.status,
           lines: item.lines || [],
         })
       }
+      notesRef.current = next
       return next
     })
   }
@@ -257,6 +296,13 @@ export default function App() {
   function clearStreams() {
     setTranscripts(new Map())
     setNotes(new Map())
+    transcriptsRef.current = new Map()
+    notesRef.current = new Map()
+    displaySessionRef.current = {
+      sessionId: null,
+      transcriptOrderOffset: 0,
+      noteOrderOffset: 0,
+    }
   }
 
   async function pollSessionState(nextSessionId: string) {

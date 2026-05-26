@@ -40,6 +40,7 @@ $env:ASR_PROVIDER="qwen"
 $env:NOTES_PROVIDER="qwen"
 $env:OPENAI_NOTES_MODEL="gpt-5.4-mini"
 $env:TRANSCRIPTION_LANGUAGE="zh"
+$env:NOTES_DRAFT_DEBOUNCE_MS="350"
 ```
 
 2. Start the server:
@@ -63,6 +64,7 @@ http://localhost:3000
 - notes adapters can switch between `openai`, `qwen`, `deepseek`, and `modelscope` using OpenAI-compatible chat completion endpoints
 - transcript ordering is best-effort
 - draft notes are regenerated per chunk rather than true line-level patching
+- draft notes wait `350ms` by default after each transcript delta before regenerating, configurable with `NOTES_DRAFT_DEBOUNCE_MS`
 - browser audio capture uses `ScriptProcessorNode`, which is fine for a prototype but not ideal for production
 - no glossary injection UI yet
 - no diarization yet
