@@ -245,40 +245,6 @@ function createSessionState() {
   };
 }
 
-function normalizeTranscriptForComparison(text) {
-  return String(text || "").replace(/\s+/g, " ").trim();
-}
-
-function shouldGenerateNotesForTranscript(previousText, nextText, status) {
-  const previous = normalizeTranscriptForComparison(previousText);
-  const next = normalizeTranscriptForComparison(nextText);
-  if (!next) {
-    return false;
-  }
-
-  if (!previous) {
-    return true;
-  }
-
-  if (previous === next) {
-    return false;
-  }
-
-  if (status !== "draft") {
-    return true;
-  }
-
-  if (!next.startsWith(previous)) {
-    return true;
-  }
-
-  const appended = next
-    .slice(previous.length)
-    .replace(/[\s\p{P}\p{S}]/gu, "");
-
-  return appended.length >= 3;
-}
-
 class InMemorySessionStore {
   constructor() {
     this.sessions = new Map();
@@ -467,9 +433,7 @@ function ensureItem(session, itemId) {
       order: session.itemCounter,
       delta: "",
       final: "",
-      status: "draft",
-      lastDraftNotesSource: "",
-      lastStableNotesSource: ""
+      status: "draft"
     });
   }
 
@@ -511,9 +475,7 @@ function createSessionSnapshot(session) {
       order: item.order,
       delta: item.delta,
       final: item.final,
-      status: item.status,
-      lastDraftNotesSource: item.lastDraftNotesSource || "",
-      lastStableNotesSource: item.lastStableNotesSource || ""
+      status: item.status
     })),
     notes: orderedNoteItems(session).map((item) => ({
       itemId: item.itemId,
@@ -552,9 +514,7 @@ function restoreSessionFromSnapshot(snapshot) {
       order: item.order,
       delta: item.delta,
       final: item.final,
-      status: item.status,
-      lastDraftNotesSource: item.lastDraftNotesSource || "",
-      lastStableNotesSource: item.lastStableNotesSource || ""
+      status: item.status
     });
   }
 
@@ -1464,9 +1424,7 @@ async function generateNotesForItem(session, itemId, status) {
   }
 
   const transcriptText = status === "stable" ? item.final || item.delta : item.delta;
-  const previousNotesSource =
-    status === "stable" ? item.lastStableNotesSource || "" : item.lastDraftNotesSource || "";
-  if (!shouldGenerateNotesForTranscript(previousNotesSource, transcriptText, status)) {
+  if (!transcriptText.trim()) {
     return;
   }
 
@@ -1486,11 +1444,6 @@ async function generateNotesForItem(session, itemId, status) {
       status,
       lines
     });
-    if (status === "stable") {
-      item.lastStableNotesSource = normalizeTranscriptForComparison(transcriptText);
-    } else {
-      item.lastDraftNotesSource = normalizeTranscriptForComparison(transcriptText);
-    }
     await persistSession(session);
 
     sendSessionEvent(session, {
