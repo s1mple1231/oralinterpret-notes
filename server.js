@@ -1413,32 +1413,6 @@ function scheduleDraftNotes(session, itemId) {
   session.pendingDraftTimers.set(itemId, timer);
 }
 
-function flushPendingDraftNotes(session) {
-  const pendingItems = Array.from(session.pendingDraftTimers.keys());
-  for (const [itemId, timer] of session.pendingDraftTimers.entries()) {
-    clearTimeout(timer);
-    session.pendingDraftTimers.delete(itemId);
-  }
-
-  return Promise.all(
-    pendingItems.map((itemId) =>
-      generateNotesForItem(session, itemId, "draft").catch((error) => {
-        sendSessionEvent(session, {
-          type: "error",
-          message: error.message || "Draft notes generation failed during stop."
-        });
-      })
-    )
-  );
-}
-
-async function waitForPendingNotes(session, timeoutMs = 4000) {
-  const startedAt = Date.now();
-  while (session.generatingForItem.size > 0 && Date.now() - startedAt < timeoutMs) {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-}
-
 async function generateNotesForItem(session, itemId, status) {
   if (session.generatingForItem.has(itemId)) {
     const queuedStatus =
@@ -1789,11 +1763,8 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/session/stop") {
       const body = await readJsonBody(req);
       const session = await getSessionOrThrow(body.sessionId);
-      stopAsrSession(session);
-      await flushPendingDraftNotes(session);
-      await waitForPendingNotes(session);
-      await persistSession(session);
-      json(res, 200, sessionStatePayload(session));
+      destroySession(session);
+      json(res, 200, { ok: true });
       return;
     }
 
