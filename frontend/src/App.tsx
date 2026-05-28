@@ -374,13 +374,20 @@ export default function App() {
 
     const activeSessionId = sessionIdRef.current
     if (activeSessionId) {
-      await fetch(apiUrl("/api/session/stop"), {
+      const response = await fetch(apiUrl("/api/session/stop"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ sessionId: activeSessionId }),
-      }).catch(() => {})
+      }).catch(() => null)
+
+      if (response?.ok) {
+        const payload = await response.json().catch(() => null)
+        if (payload) {
+          applySessionSnapshot(payload)
+        }
+      }
     }
 
     setSessionId(null)
