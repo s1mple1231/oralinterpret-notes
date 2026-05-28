@@ -236,7 +236,6 @@ function createSessionState() {
     notesByItemId: new Map(),
     pendingDraftTimers: new Map(),
     generatingForItem: new Set(),
-    queuedNotesByItem: new Map(),
     lastEvent: null,
     sessionConfig: {
       language: DEFAULT_LANGUAGE
@@ -402,7 +401,6 @@ function resetSessionItems(session) {
   session.transcriptByItemId.clear();
   session.notesByItemId.clear();
   session.generatingForItem.clear();
-  session.queuedNotesByItem.clear();
   session.lineCounter = 0;
   session.itemCounter = 0;
 }
@@ -1420,14 +1418,6 @@ function scheduleDraftNotes(session, itemId) {
 
 async function generateNotesForItem(session, itemId, status) {
   if (session.generatingForItem.has(itemId)) {
-    const queuedStatus =
-      session.queuedNotesByItem.get(itemId) === "stable" || status === "stable"
-        ? "stable"
-        : "draft";
-    session.queuedNotesByItem.set(itemId, queuedStatus);
-    console.log(
-      `[session:${session.id}] queue notes retry item=${itemId} requested=${status} queued=${queuedStatus}`
-    );
     return;
   }
 
@@ -1482,19 +1472,6 @@ async function generateNotesForItem(session, itemId, status) {
     throw error;
   } finally {
     session.generatingForItem.delete(itemId);
-    const queuedStatus = session.queuedNotesByItem.get(itemId);
-    if (queuedStatus) {
-      session.queuedNotesByItem.delete(itemId);
-      console.log(
-        `[session:${session.id}] replay queued notes item=${itemId} status=${queuedStatus}`
-      );
-      generateNotesForItem(session, itemId, queuedStatus).catch((error) => {
-        sendSessionEvent(session, {
-          type: "error",
-          message: error.message || "Queued notes generation failed."
-        });
-      });
-    }
   }
 }
 
