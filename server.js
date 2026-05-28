@@ -1793,9 +1793,6 @@ const server = createServer(async (req, res) => {
       await flushPendingDraftNotes(session);
       await waitForPendingNotes(session);
       await persistSession(session);
-      console.log(
-        `[session:${session.id}] stop returning transcript=${orderedTranscriptItems(session).length} notes=${orderedNoteItems(session).length}`
-      );
       json(res, 200, sessionStatePayload(session));
       return;
     }
