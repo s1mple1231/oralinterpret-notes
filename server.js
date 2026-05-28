@@ -588,6 +588,9 @@ async function callJsonApi(baseUrl, pathname, apiKey, body) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = payload?.error?.message || `${response.status} ${response.statusText}`;
+    console.error(
+      `[json-api] request failed baseUrl=${baseUrl} path=${pathname} status=${response.status} message=${message} payload=${JSON.stringify(payload)}`
+    );
     throw new Error(message);
   }
 
@@ -1432,6 +1435,9 @@ async function generateNotesForItem(session, itemId, status) {
 
   try {
     const notesProvider = createNotesProvider(session.notesProviderName);
+    console.log(
+      `[session:${session.id}] generate notes provider=${session.notesProviderName} model=${notesProvider.config?.model || "unknown"} item=${itemId} status=${status} transcriptLength=${transcriptText.length}`
+    );
     const parsed = await notesProvider.generateNotes({
       transcriptText,
       contextText: noteContextText(session),
@@ -1452,7 +1458,13 @@ async function generateNotesForItem(session, itemId, status) {
       status,
       lines
     });
+    console.log(
+      `[session:${session.id}] notes generated item=${itemId} status=${status} lines=${lines.length}`
+    );
   } catch (error) {
+    console.error(
+      `[session:${session.id}] notes generation failed provider=${session.notesProviderName} item=${itemId} status=${status}: ${error.message || "Unknown provider error."}`
+    );
     sendSessionEvent(session, {
       type: "error",
       message: `Notes generation failed: ${error.message || "Unknown provider error."}`
