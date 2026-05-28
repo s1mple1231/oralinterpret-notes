@@ -394,6 +394,8 @@ export default function App() {
   }
 
   async function startCapture() {
+    setStatus("正在连接后端…")
+
     const response = await fetch(apiUrl("/api/session/start"), {
       method: "POST",
       headers: {
@@ -528,7 +530,9 @@ export default function App() {
           syncProviderSelections(payload.providers)
         }
       })
-      .catch(() => {})
+      .catch((error: Error) => {
+        setStatus(`提供方加载失败: ${error.message}`)
+      })
 
     return () => {
       stopStatePolling()
@@ -659,11 +663,23 @@ export default function App() {
               />
 
               <div className="flex flex-wrap gap-3 pt-1">
-                <Button onClick={() => void startCapture()} disabled={isListening} size="lg">
+                <Button
+                  onClick={() => {
+                    void startCapture().catch((error: Error) => {
+                      setStatus(error.message || "启动失败")
+                    })
+                  }}
+                  disabled={isListening}
+                  size="lg"
+                >
                   开始监听
                 </Button>
                 <Button
-                  onClick={() => void stopCapture()}
+                  onClick={() => {
+                    void stopCapture().catch((error: Error) => {
+                      setStatus(error.message || "停止失败")
+                    })
+                  }}
                   disabled={!isListening}
                   variant="outline"
                   size="lg"
