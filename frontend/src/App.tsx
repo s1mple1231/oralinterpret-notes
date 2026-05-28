@@ -386,6 +386,9 @@ export default function App() {
         const payload = await response.json().catch(() => null)
         if (payload) {
           applySessionSnapshot(payload)
+          const finalNotesCount = Array.isArray(payload.notes) ? payload.notes.length : 0
+          const finalTranscriptCount = Array.isArray(payload.transcript) ? payload.transcript.length : 0
+          setStatus(`停止完成：转写 ${finalTranscriptCount} 条，笔记 ${finalNotesCount} 条`)
         }
       }
     }
@@ -393,7 +396,6 @@ export default function App() {
     setSessionId(null)
     sessionIdRef.current = null
     setIsListening(false)
-    setStatus("空闲")
     setAudioLevel(0)
     setInputSourceText("未开始")
     setSystemAudioTrackState("未启用")
