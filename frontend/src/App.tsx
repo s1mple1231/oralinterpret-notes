@@ -65,6 +65,28 @@ type SessionEvent = {
 type AudioMode = "mic" | "system" | "mic_system"
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "")
+const FALLBACK_PROVIDERS: ProviderSummary = {
+  active: {
+    asr: "qwen",
+    notes: "qwen",
+  },
+  catalog: {
+    asr: [
+      { name: "mock", label: "Mock ASR", implemented: true, sampleRate: 16000 },
+      { name: "openai", label: "OpenAI Realtime", implemented: true, sampleRate: 24000 },
+      { name: "qwen", label: "Qwen Realtime ASR", implemented: true, sampleRate: 16000 },
+      { name: "tencent", label: "Tencent Cloud Realtime ASR", implemented: true, sampleRate: 16000 },
+      { name: "doubao", label: "Doubao Realtime Speech", implemented: false, sampleRate: null },
+    ],
+    notes: [
+      { name: "mock", label: "Mock Notes", implemented: true, configured: true },
+      { name: "openai", label: "OpenAI Notes", implemented: true, configured: false },
+      { name: "qwen", label: "Qwen Notes", implemented: true, configured: true },
+      { name: "deepseek", label: "DeepSeek Notes", implemented: true, configured: false },
+      { name: "modelscope", label: "ModelScope Notes", implemented: true, configured: false },
+    ],
+  },
+}
 
 function apiUrl(pathname: string) {
   return API_BASE_URL ? `${API_BASE_URL}${pathname}` : pathname
@@ -150,9 +172,9 @@ export default function App() {
   const [language, setLanguage] = useState("zh")
   const [status, setStatus] = useState("空闲")
   const [targetSampleRate, setTargetSampleRate] = useState(16000)
-  const [providers, setProviders] = useState<ProviderSummary | null>(null)
-  const [selectedAsr, setSelectedAsr] = useState("mock")
-  const [selectedNotes, setSelectedNotes] = useState("mock")
+  const [providers, setProviders] = useState<ProviderSummary>(FALLBACK_PROVIDERS)
+  const [selectedAsr, setSelectedAsr] = useState(FALLBACK_PROVIDERS.active.asr)
+  const [selectedNotes, setSelectedNotes] = useState(FALLBACK_PROVIDERS.active.notes)
   const [transcripts, setTranscripts] = useState<Map<string, TranscriptItem>>(new Map())
   const [notes, setNotes] = useState<Map<string, NotesItem>>(new Map())
   const [isListening, setIsListening] = useState(false)
@@ -522,13 +544,22 @@ export default function App() {
 
   useEffect(() => {
     fetch(apiUrl("/api/providers"))
-      .then((response) => response.json())
+      .then(async (response) => {
+        const payload = await response.json()
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to load providers.")
+        }
+        return payload
+      })
       .then((payload) => {
         if (payload.providers) {
           syncProviderSelections(payload.providers)
         }
       })
-      .catch(() => {})
+      .catch((error: Error) => {
+        syncProviderSelections(FALLBACK_PROVIDERS)
+        setStatus(`提供方加载失败，已使用默认配置: ${error.message}`)
+      })
 
     return () => {
       stopStatePolling()
