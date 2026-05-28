@@ -38,7 +38,6 @@ const DEFAULT_ASR_PROVIDER = process.env.ASR_PROVIDER || "openai";
 const DEFAULT_NOTES_PROVIDER = process.env.NOTES_PROVIDER || "openai";
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_MS || 30 * 60 * 1000);
 const NOTES_DRAFT_DEBOUNCE_MS = Number(process.env.NOTES_DRAFT_DEBOUNCE_MS || 350);
-const NOTES_API_TIMEOUT_MS = Number(process.env.NOTES_API_TIMEOUT_MS || 15000);
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((value) => value.trim())
@@ -579,23 +578,13 @@ function requireProviderConfig(group, name) {
 }
 
 async function callJsonApi(baseUrl, pathname, apiKey, body) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), NOTES_API_TIMEOUT_MS);
   const response = await fetch(`${baseUrl}${pathname}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(body),
-    signal: controller.signal
-  }).catch((error) => {
-    if (error?.name === "AbortError") {
-      throw new Error(`Notes API timed out after ${NOTES_API_TIMEOUT_MS}ms.`);
-    }
-    throw error;
-  }).finally(() => {
-    clearTimeout(timeout);
+    body: JSON.stringify(body)
   });
 
   const payload = await response.json().catch(() => ({}));
@@ -1443,30 +1432,7 @@ function flushPendingDraftNotes(session) {
   );
 }
 
-async function finalizeStableNotes(session) {
-  const itemIds = session.itemOrder.filter((itemId) => {
-    const transcriptItem = session.transcriptByItemId.get(itemId);
-    if (!transcriptItem) {
-      return false;
-    }
-
-    const noteItem = session.notesByItemId.get(itemId);
-    return Boolean(transcriptItem.final || transcriptItem.delta) && noteItem?.status !== "stable";
-  });
-
-  await Promise.all(
-    itemIds.map((itemId) =>
-      generateNotesForItem(session, itemId, "stable").catch((error) => {
-        sendSessionEvent(session, {
-          type: "error",
-          message: error.message || "Stable notes generation failed during stop."
-        });
-      })
-    )
-  );
-}
-
-async function waitForPendingNotes(session, timeoutMs = 15000) {
+async function waitForPendingNotes(session, timeoutMs = 4000) {
   const startedAt = Date.now();
   while (session.generatingForItem.size > 0 && Date.now() - startedAt < timeoutMs) {
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1825,7 +1791,6 @@ const server = createServer(async (req, res) => {
       const session = await getSessionOrThrow(body.sessionId);
       stopAsrSession(session);
       await flushPendingDraftNotes(session);
-      await finalizeStableNotes(session);
       await waitForPendingNotes(session);
       await persistSession(session);
       console.log(
