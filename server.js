@@ -1053,12 +1053,7 @@ class OpenAICompatibleNotesProvider {
         }
       ],
       response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "interpreting_notes_stream",
-          strict: true,
-          schema: outputSchema
-        }
+        type: "json_object"
       },
       ...(this.config.extraBody ? { extra_body: this.config.extraBody } : {})
     };
