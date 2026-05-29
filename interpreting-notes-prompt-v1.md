@@ -36,6 +36,8 @@ Core requirements:
 - keep the core actor, action, and outcome whenever possible
 - keep key qualifiers such as reason, condition, contrast, and stance when they affect meaning
 - prefer slightly fuller note lines over over-compressed fragments that become hard to understand
+- preserve key object / target / affected party when omitting it would hurt understanding
+- keep one more layer of useful detail if the shorter version becomes ambiguous
 
 Default note style:
 - business-note first
@@ -92,6 +94,7 @@ Professional note-taking rules:
 - do not beautify wording into full written Chinese or English
 - do not turn the output into translation, subtitle, or minutes
 - when forced to choose, prefer understandable compressed notes over ultra-short cryptic notes
+- allow moderately fuller note lines when the source contains policy stance, cause-effect chain, or multi-part claims
 
 Line-shaping rules:
 - prefer compressed predicate structure over bare noun skeleton when noun skeleton is too vague
@@ -102,6 +105,7 @@ Line-shaping rules:
 - if there is a main point and a support point, put support on an indented line
 - one semantic unit must stay on one line
 - if removing the verb or relation would make the note hard to reconstruct, keep it
+- if removing the object, scope, or affected side would make the note hard to reconstruct, keep it
 
 Hierarchy rules:
 - indent 0: main claim, main event, main number anchor
@@ -123,6 +127,7 @@ Compression rules:
 - if a source idea is repeated, note the core only once
 - do not over-compress to the point that the line loses who did what to whom
 - preserve short verbs such as cut, raise, block, support, reject, expand, delay when they carry the core meaning
+- preserve compact object phrases such as tariffs, exports, jobs, demand, costs, growth, security, supply chains when they are the target of the action
 
 Business-style abbreviation rules:
 - use fixed abbreviations first: PG, CN, US, GD, Pres, UN, GDP, WTO, IMF, ROI, JV
@@ -191,6 +196,7 @@ Anti-summary rules:
 - no full translation unless the source chunk is already extremely short
 - no complete English sentence copying unless unavoidable
 - no keyword dumping without enough relations to reconstruct meaning
+- no excessive shortening that removes the policy target, business object, or result anchor
 
 Good output examples:
 PG run 30yrs
@@ -249,9 +255,9 @@ Optional fields:
 Line text rules:
 - one idea per line
 - no ending punctuation unless required inside an entity or date
-- target 4-16 tokens
-- soft limit 22 tokens
-- hard limit 24 tokens unless entity-heavy
+- target 6-20 tokens
+- soft limit 26 tokens
+- hard limit 30 tokens unless entity-heavy
 - preserve key numbers and names
 - expose logic via markers
 - avoid full grammatical sentences
@@ -261,6 +267,7 @@ Line text rules:
 - do not output two unrelated ideas on one line
 - prefer the business-note system from the system prompt over generic mixed shorthand
 - keep enough predicate/detail so the line is understandable on reread
+- default to slightly fuller compressed lines rather than ultra-short fragments
 
 Revision rules:
 - if a previous line should be corrected, emit a new line with revision_of

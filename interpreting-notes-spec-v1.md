@@ -98,15 +98,15 @@ Each note line should represent one of:
 
 Preferred line length:
 
-- 4 to 16 tokens
+- 6 to 20 tokens
 
 Soft upper limit:
 
-- 22 visible tokens
+- 26 visible tokens
 
 Hard limit:
 
-- 24 visible tokens unless the content is a named entity or technical phrase
+- 30 visible tokens unless the content is a named entity or technical phrase
 
 ## 6. Information Priority
 
@@ -123,6 +123,8 @@ When compression is necessary, preserve information in this order:
 If latency is high or ASR is unstable, keep only items 1-4.
 
 When readability would otherwise collapse, preserve a little more of items 5-6 instead of over-compressing into cryptic fragments.
+
+When the action target, affected party, or practical outcome is central, preserve that extra layer of detail instead of collapsing the note into a bare headline.
 
 ## 7. Required Semantic Elements
 
@@ -218,6 +220,7 @@ The system should compress using the following rules:
 - if content repeats, record the core only once
 - do not over-compress to the point that the note no longer preserves who did what, key stance, or main outcome
 - preserve short verbs and compact predicate structure when they are necessary for rereading
+- preserve compact object phrases and affected targets when they are necessary for rereading
 
 Examples:
 
@@ -435,6 +438,7 @@ Reject these tendencies:
 - replacing speaker stance with neutral wording
 - complete sentence copying from the source
 - keyword dumping with too little relation or predicate information to reconstruct meaning
+- excessive shortening that removes the policy target, business object, or result anchor
 
 Bad:
 
@@ -532,6 +536,7 @@ The note generator prompt should explicitly instruct:
 - preserve numbers and names
 - show logic with symbols
 - compress, but keep enough actor/action/outcome information for rereading
+- preserve object/target/result information when omission would make the note vague
 - prefer memory cues over grammatical completeness
 - output partial notes early and refine later
 - prefer the business-note shorthand system in sections 4-9
@@ -544,6 +549,7 @@ The output should be evaluated on:
 - logical clarity
 - compression quality
 - readability on delayed reread
+- object/action clarity
 - number retention
 - entity retention
 - low-latency usefulness
