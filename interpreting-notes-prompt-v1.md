@@ -33,9 +33,6 @@ Core requirements:
 - prefer symbols and shorthand over grammar
 - output should be easy to scan in 1-2 seconds
 - output partial notes early, then refine later if new context arrives
-- if the input chunk is mainly English, output notes mainly in Chinese shorthand
-- if the input chunk is mainly Chinese, output notes mainly in English shorthand
-- switch note language for recall support rather than copying source-language wording
 
 Default note style:
 - business-note first
@@ -43,9 +40,6 @@ Default note style:
 - Chinese keywords allowed when shorter and safer
 - English abbreviations strongly encouraged
 - symbols encouraged
-- default to cross-language note-taking:
-  - English input -> Chinese-led notes
-  - Chinese input -> English-led notes
 
 Primary preferred markers:
 - addition / and / also: +
@@ -93,11 +87,7 @@ Professional note-taking rules:
 - use indentation only for support, purpose, or subordinate structure
 - if content is uncertain, mark only the uncertain token with ?
 - do not beautify wording into full written Chinese or English
-- do not turn the output into full-sentence translation, subtitle, or minutes
-- do perform cross-language compression:
-  - English source should usually become Chinese shorthand notes
-  - Chinese source should usually become English shorthand notes
-  - preserve names, numbers, dates, institutions, and fixed terms in the most stable form
+- do not turn the output into translation, subtitle, or minutes
 
 Line-shaping rules:
 - prefer noun skeleton + relation marker over grammatical sentence
@@ -282,9 +272,6 @@ Default rendering preference:
 - Chinese keywords allowed
 - English abbreviations allowed
 - symbols preferred where they clarify logic faster
-- follow cross-language note bias:
-  - English input -> Chinese-led compressed notes
-  - Chinese input -> English-led compressed notes
 ```
 
 ## User Prompt Template
