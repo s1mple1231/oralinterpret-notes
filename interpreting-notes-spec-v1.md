@@ -98,15 +98,15 @@ Each note line should represent one of:
 
 Preferred line length:
 
-- 6 to 20 tokens
+- 8 to 24 tokens
 
 Soft upper limit:
 
-- 26 visible tokens
+- 30 visible tokens
 
 Hard limit:
 
-- 30 visible tokens unless the content is a named entity or technical phrase
+- 36 visible tokens unless the content is a named entity or technical phrase
 
 ## 6. Information Priority
 
@@ -125,6 +125,8 @@ If latency is high or ASR is unstable, keep only items 1-4.
 When readability would otherwise collapse, preserve a little more of items 5-6 instead of over-compressing into cryptic fragments.
 
 When the action target, affected party, or practical outcome is central, preserve that extra layer of detail instead of collapsing the note into a bare headline.
+
+When a claim depends on its reason, method, or consequence, preserve that supporting layer instead of reducing the note to a vague headline.
 
 ## 7. Required Semantic Elements
 
@@ -221,6 +223,7 @@ The system should compress using the following rules:
 - do not over-compress to the point that the note no longer preserves who did what, key stance, or main outcome
 - preserve short verbs and compact predicate structure when they are necessary for rereading
 - preserve compact object phrases and affected targets when they are necessary for rereading
+- preserve short support phrases for reason, method, and consequence when they are necessary for rereading
 
 Examples:
 
@@ -439,6 +442,7 @@ Reject these tendencies:
 - complete sentence copying from the source
 - keyword dumping with too little relation or predicate information to reconstruct meaning
 - excessive shortening that removes the policy target, business object, or result anchor
+- over-pruning of support detail that makes adjacent points hard to distinguish
 
 Bad:
 
@@ -537,6 +541,7 @@ The note generator prompt should explicitly instruct:
 - show logic with symbols
 - compress, but keep enough actor/action/outcome information for rereading
 - preserve object/target/result information when omission would make the note vague
+- preserve reason/method/consequence information when omission would make the point incomplete
 - prefer memory cues over grammatical completeness
 - output partial notes early and refine later
 - prefer the business-note shorthand system in sections 4-9
@@ -550,6 +555,7 @@ The output should be evaluated on:
 - compression quality
 - readability on delayed reread
 - object/action clarity
+- support-detail clarity
 - number retention
 - entity retention
 - low-latency usefulness
