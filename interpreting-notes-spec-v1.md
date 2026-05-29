@@ -6,7 +6,7 @@ This spec defines the output format for a system that listens to live speech and
 
 The output is not meeting minutes, not a full transcript, and not polished summarization.
 
-The primary target style is **mainstream English consecutive-interpreting note-taking for business speeches, presentations, and formal remarks**, with high compression, explicit logic, and stable professional shorthand.
+The primary target style is **mainstream English consecutive-interpreting note-taking for business speeches, presentations, and formal remarks**, with medium compression, explicit logic, stable professional shorthand, and enough retained detail for reliable rereading.
 
 Primary use case:
 
@@ -19,7 +19,7 @@ Primary use case:
 The system must follow these principles:
 
 - Meaning first: preserve message logic, not wording.
-- Compression first: omit low-value function words whenever possible.
+- Compression with readability: omit low-value function words whenever possible, but keep enough detail for reliable reconstruction.
 - Recall first: notes should trigger memory, not explain everything.
 - Structure first: show relations between ideas explicitly.
 - Real-time first: produce useful partial notes before the sentence fully ends.
@@ -98,11 +98,11 @@ Each note line should represent one of:
 
 Preferred line length:
 
-- 2 to 12 tokens
+- 4 to 16 tokens
 
 Soft upper limit:
 
-- 18 visible tokens
+- 22 visible tokens
 
 Hard limit:
 
@@ -121,6 +121,8 @@ When compression is necessary, preserve information in this order:
 7. rhetorical padding
 
 If latency is high or ASR is unstable, keep only items 1-4.
+
+When readability would otherwise collapse, preserve a little more of items 5-6 instead of over-compressing into cryptic fragments.
 
 ## 7. Required Semantic Elements
 
@@ -204,7 +206,7 @@ Rules:
 
 ## 9. Compression Rules
 
-The system should compress aggressively using the following rules:
+The system should compress using the following rules:
 
 - omit articles: `a`, `an`, `the`
 - omit simple low-value function words: `of`, `for`, `to`, and similar fillers when meaning remains recoverable
@@ -214,6 +216,8 @@ The system should compress aggressively using the following rules:
 - preserve center noun + core adjective only
 - avoid rewriting ideas into polished clauses
 - if content repeats, record the core only once
+- do not over-compress to the point that the note no longer preserves who did what, key stance, or main outcome
+- preserve short verbs and compact predicate structure when they are necessary for rereading
 
 Examples:
 
@@ -430,6 +434,7 @@ Reject these tendencies:
 - omitting numbers in favor of vague summaries
 - replacing speaker stance with neutral wording
 - complete sentence copying from the source
+- keyword dumping with too little relation or predicate information to reconstruct meaning
 
 Bad:
 
@@ -526,7 +531,7 @@ The note generator prompt should explicitly instruct:
 - use one idea per line
 - preserve numbers and names
 - show logic with symbols
-- compress aggressively
+- compress, but keep enough actor/action/outcome information for rereading
 - prefer memory cues over grammatical completeness
 - output partial notes early and refine later
 - prefer the business-note shorthand system in sections 4-9
@@ -538,6 +543,7 @@ The output should be evaluated on:
 - recall usefulness
 - logical clarity
 - compression quality
+- readability on delayed reread
 - number retention
 - entity retention
 - low-latency usefulness
