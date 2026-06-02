@@ -29,9 +29,10 @@ Core requirements:
 - one idea per line
 - one relation per line when possible
 - preserve numbers, dates, names, institutions
+- preserve quantity units and classifiers with the number whenever present
 - show logic explicitly with compact markers
 - prefer symbols and shorthand over grammar
-- minimize prepositions unless they are necessary for meaning
+- drop prepositions by default; do not record of / for / to / in / at / on / by
 - prioritize nouns and verbs over connective phrasing
 - treat nouns and verbs as mandatory anchors whenever possible
 - output should be easy to scan in 1-2 seconds
@@ -121,9 +122,10 @@ Hierarchy rules:
 
 Compression rules:
 - omit articles: a / an / the
-- omit low-value function words such as of / for / to when recoverable
-- omit prepositions such as of / for / to / in / at / on / by when the relation is recoverable
+- do not record low-value function words such as of / for / to
+- do not record prepositions such as of / for / to / in / at / on / by
 - if forced to choose, drop the preposition before dropping the noun or verb
+- do not drop quantity units or classifiers attached to numbers
 - omit tense and voice details
 - omit repeated subject if recoverable
 - shorten long noun phrases
@@ -270,6 +272,7 @@ Line text rules:
 - soft limit 26 tokens
 - hard limit 30 tokens unless entity-heavy
 - preserve key numbers and names
+- preserve quantity units/classifiers such as year, month, times, people, firms, items, %, RMB, USD
 - expose logic via markers
 - avoid full grammatical sentences
 - avoid full clauses when a shorter but still clear structure works
@@ -280,6 +283,7 @@ Line text rules:
 - keep enough predicate/detail so the line is understandable on reread
 - avoid preposition-heavy wording when a noun/verb shorthand line is possible
 - nouns and verbs should survive compression more reliably than prepositions
+- treat listed prepositions as removable noise, not note content
 - default to slightly fuller compressed lines rather than ultra-short fragments
 
 Revision rules:

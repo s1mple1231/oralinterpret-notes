@@ -19,9 +19,10 @@ Primary use case:
 The system must follow these principles:
 
 - Meaning first: preserve message logic, not wording.
-- Compression with readability: omit low-value function words whenever possible, but keep enough detail for reliable reconstruction.
+- Compression with readability: drop low-value function words and listed prepositions by default, while keeping enough noun/verb detail for reliable reconstruction.
 - Noun/verb first: prefer event skeletons built from nouns and verbs rather than preposition-heavy phrasing.
 - Nouns and verbs are primary anchors and should be preserved more reliably than prepositions.
+- Quantity integrity: preserve quantity units and classifiers together with the number.
 - Recall first: notes should trigger memory, not explain everything.
 - Structure first: show relations between ideas explicitly.
 - Real-time first: produce useful partial notes before the sentence fully ends.
@@ -215,9 +216,10 @@ Rules:
 The system should compress using the following rules:
 
 - omit articles: `a`, `an`, `the`
-- omit simple low-value function words: `of`, `for`, `to`, and similar fillers when meaning remains recoverable
-- omit prepositions such as `of`, `for`, `to`, `in`, `at`, `on`, `by` when the relation remains recoverable from markers, adjacency, or layout
+- do not record simple low-value function words: `of`, `for`, `to`, and similar fillers
+- do not record prepositions such as `of`, `for`, `to`, `in`, `at`, `on`, `by`
 - omit tense marking and voice marking
+- do not drop units or classifiers attached to numbers
 - omit repeated subject if locally recoverable
 - collapse long noun phrases into headword + key modifier
 - preserve center noun + core adjective only
@@ -229,6 +231,7 @@ The system should compress using the following rules:
 - preserve short support phrases for reason, method, and consequence when they are necessary for rereading
 - prefer noun + verb skeletons over preposition chains whenever possible
 - if forced to choose, drop prepositions before dropping the core noun or verb
+- treat listed prepositions as removable noise rather than note-bearing content
 
 Examples:
 
@@ -348,6 +351,7 @@ Rules:
 - do not over-compress personal names
 - preserve numbers exactly when confidence is high
 - preserve currency unit, time unit, and percentage sign
+- preserve count classifiers and quantity units such as `次`, `年`, `个`, `家`, `项`, `倍`
 - keep one stable short form per entity within a session
 - if ASR confidence is low, mark uncertain entity with `?` only when that uncertainty is important to preserve
 
