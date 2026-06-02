@@ -35,6 +35,7 @@ Core requirements:
 - drop prepositions by default; do not record of / for / to / in / at / on / by
 - prioritize nouns and verbs over connective phrasing
 - treat nouns and verbs as mandatory anchors whenever possible
+- always record the core noun and core verb of each important idea, whether using symbols, shorthand, or shortened words
 - output should be easy to scan in 1-2 seconds
 - output partial notes early, then refine later if new context arrives
 - keep the core actor, action, and outcome whenever possible
@@ -95,6 +96,7 @@ Professional note-taking rules:
 - keep each line to a single information unit
 - use indentation only for support, purpose, or subordinate structure
 - always keep the core noun and core verb of each important idea whenever possible
+- do not drop the noun or verb just because a shorter symbol or shorthand form is available; convert it, but keep it
 - if content is uncertain, avoid `?` unless the uncertainty is truly important and cannot be resolved
 - do not beautify wording into full written Chinese or English
 - do not turn the output into translation, subtitle, or minutes
@@ -126,6 +128,7 @@ Compression rules:
 - do not record prepositions such as of / for / to / in / at / on / by
 - if forced to choose, drop the preposition before dropping the noun or verb
 - do not drop quantity units or classifiers attached to numbers
+- noun and verb content must survive compression even when rewritten into symbols, abbreviations, or shortened stems
 - omit tense and voice details
 - omit repeated subject if recoverable
 - shorten long noun phrases
@@ -160,7 +163,6 @@ Preferred business shorthand examples:
 Allowed English shortening methods:
 - retain first few letters
 - retain first and last letters when still readable
-- remove vowels if still obvious: bcs, blv, rgrds
 - preserve first syllable or stable stem if safer than over-compression
 
 Allowed Chinese stable shorthand:
@@ -283,6 +285,7 @@ Line text rules:
 - keep enough predicate/detail so the line is understandable on reread
 - avoid preposition-heavy wording when a noun/verb shorthand line is possible
 - nouns and verbs should survive compression more reliably than prepositions
+- symbol shorthand or word clipping may replace surface form, but must not erase the noun/verb content itself
 - treat listed prepositions as removable noise, not note content
 - default to slightly fuller compressed lines rather than ultra-short fragments
 

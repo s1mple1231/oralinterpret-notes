@@ -22,6 +22,7 @@ The system must follow these principles:
 - Compression with readability: drop low-value function words and listed prepositions by default, while keeping enough noun/verb detail for reliable reconstruction.
 - Noun/verb first: prefer event skeletons built from nouns and verbs rather than preposition-heavy phrasing.
 - Nouns and verbs are primary anchors and should be preserved more reliably than prepositions.
+- Anchor preservation: the core noun and core verb of each important idea must remain present, even if expressed as a symbol, abbreviation, or shortened word.
 - Quantity integrity: preserve quantity units and classifiers together with the number.
 - Recall first: notes should trigger memory, not explain everything.
 - Structure first: show relations between ideas explicitly.
@@ -220,6 +221,7 @@ The system should compress using the following rules:
 - do not record prepositions such as `of`, `for`, `to`, `in`, `at`, `on`, `by`
 - omit tense marking and voice marking
 - do not drop units or classifiers attached to numbers
+- core noun and verb content must survive compression even when rewritten into symbols, abbreviations, or stable stems
 - omit repeated subject if locally recoverable
 - collapse long noun phrases into headword + key modifier
 - preserve center noun + core adjective only
@@ -231,6 +233,7 @@ The system should compress using the following rules:
 - preserve short support phrases for reason, method, and consequence when they are necessary for rereading
 - prefer noun + verb skeletons over preposition chains whenever possible
 - if forced to choose, drop prepositions before dropping the core noun or verb
+- symbol shorthand may replace surface wording, but it must still preserve the noun/verb anchor
 - treat listed prepositions as removable noise rather than note-bearing content
 
 Examples:
@@ -288,7 +291,6 @@ Allowed methods:
 
 - retain first few letters
 - retain first and last letters when still recoverable
-- remove vowels if the result stays readable: `bcs`, `blv`, `rgrds`
 - preserve first syllable or stable stem when safer than over-compression
 
 ### 4. Constructed Chinese shorthand
