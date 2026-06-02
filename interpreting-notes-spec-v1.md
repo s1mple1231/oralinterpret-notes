@@ -1,652 +1,352 @@
-# Real-Time Interpreting Notes Spec v1
+﻿# 口译笔记规范 v2
 
-## 1. Goal
+## 1. 目标
 
-This spec defines the output format for a system that listens to live speech and generates interpreter-style notes in real time.
+本规范定义系统在实时或准实时听取讲话内容后，应生成的口译笔记风格。
 
-The output is not meeting minutes, not a full transcript, and not polished summarization.
+输出目标不是：
 
-The primary target style is **mainstream English consecutive-interpreting note-taking for business speeches, presentations, and formal remarks**, with medium compression, explicit logic, stable professional shorthand, and enough retained detail for reliable rereading.
+- 会议纪要
+- 完整转写
+- 润色后的摘要
+- 面向外行读者的说明文字
 
-Primary use case:
+输出目标是：
 
-- help an interpreter retain meaning and reproduce speech
-- support short-lag oral reformulation
-- reduce memory load during live listening
+- 帮助译员在短时记忆压力下抓住信息主干
+- 支持交替传译或短时滞后的口头复述
+- 用最少的字保留结构、逻辑、数字和触发记忆的关键词
 
-## 2. Core Design Principles
+## 2. 核心原则
 
-The system must follow these principles:
+系统必须遵循以下原则：
 
-- Meaning first: preserve message logic, not wording.
-- Compression with readability: omit low-value function words whenever possible, but keep enough detail for reliable reconstruction.
-- Recall first: notes should trigger memory, not explain everything.
-- Structure first: show relations between ideas explicitly.
-- Real-time first: produce useful partial notes before the sentence fully ends.
-- Editable first: allow later correction when upstream ASR changes.
-- Business-note first: when multiple shorthand styles are possible, prefer the compact business/consecutive style defined below.
+- 记意义，不记原句
+- 先记主干，后记细节
+- 一行一意群，不写整段 prose
+- 优先保留结构、逻辑、数字、专名
+- 压缩必须服务于回忆，而不是制造谜语
+- 笔记是给译员自己复现讲话用的，不是给旁观者阅读的
 
-## 3. Non-Goals
+一句话原则：
 
-The system must not default to:
+`口译笔记不是记原文，而是用最少的字，记住发言的结构、逻辑、数字和触发记忆的关键词。`
 
-- full-sentence paraphrase
-- complete grammar
-- polished written Chinese or English
-- article-style summary
-- speaker attribution on every line unless needed
-- filler words such as "well", "you know", "I mean"
-- diary-like prose or smooth explanatory text for outsiders
+## 3. 非目标
 
-Bad output example:
+系统默认不得输出以下内容：
+
+- 完整句翻译
+- 平滑书面中文段落
+- 逐句誊写
+- 只堆关键词、没有逻辑关系
+- 把数字模糊化
+- 把强烈判断弱化成中性概述
+
+坏例子：
 
 ```text
-The speaker said that the European Union hopes to achieve a 55 percent emissions reduction target by 2030, but there are disagreements among member states regarding funding and implementation.
+这双鞋是 Air Jordan III Black Cement，它在球鞋历史上非常重要，因为它于 1988 年首次发布，推动了 Nike 的营销，并且对整个 Air Jordan 产品线都产生了巨大影响。
 ```
 
-Target-style output:
+目标风格：
 
 ```text
-EU
--> 2030 tgt
-CO2 -55%
-
-MS differ
-funding / impl
+AJ3 黑水泥
+★ 史重球鞋
+'88 首发
+→ Nike 营销开端
+→ 撑 AJ 线 / 救 Nike
 ```
 
-## 4. Overall Layout Rules
+## 4. 基本布局
 
-This project should follow the mainstream consecutive-interpreting layout standard:
+### 4.1 一行一个信息块
 
-1. **Vertical note flow**
+- 每行只承载一个意群
+- 不把多个关系硬挤进一长句
+- 主信息、补充信息、例子、结果尽量分行
 
-- write one sense group per line
-- do not write full sentences across one long line
-- split main clause, support, condition, cause, and contrast into separate lines when possible
+### 4.2 纵向堆叠
 
-2. **Left alignment**
+- 笔记默认纵向排列
+- 不写成长段
+- 可按信息簇留少量空行
 
-- every note starts from the left
-- do not center or right-align note content
-- in handwritten practice, the right side is reserved for 补充 / 修正; in product form, keep the rendering visually left-anchored
+### 4.3 层级清晰
 
-3. **One semantic unit per line**
+建议按以下层级展开：
 
-- each line should carry one idea, one action, one relation, or one anchor
-- a semantic unit should not be awkwardly split across multiple lines
+- 第一层：主题 / 事件 / 核心判断
+- 第二层：分论点 / 原因 / 结果 / 现象
+- 第三层：数字 / 例子 / 补充 / 例外
 
-4. **No prose blocks**
+### 4.4 主干优先
 
-- stacked lines are the default visual form
-- blank lines are allowed only between clusters, not between every note item
+每个讲话片段优先抓以下主干：
 
-## 5. Output Unit
+- 主题是什么
+- 发生了什么
+- 为什么重要
+- 带来什么结果
 
-The core output unit is the note line.
+## 5. 输出单元
 
-Each note line should represent one of:
+核心输出单元是“笔记行”。
 
-- a main claim
-- a supporting point
-- a contrast
-- a condition
-- a cause
-- a result
-- a number/time/name anchor
-- an unresolved question
+每个笔记行应尽量对应以下一种信息：
 
-Preferred line length:
+- 主题
+- 判断
+- 动作
+- 原因
+- 结果
+- 转折
+- 条件
+- 数字锚点
+- 例子
+- 例外
 
-- 8 to 24 tokens
+建议长度：
 
-Soft upper limit:
+- 2 到 12 个核心词或符号
 
-- 30 visible tokens
+软上限：
 
-Hard limit:
+- 18 个可见词元
 
-- 36 visible tokens unless the content is a named entity or technical phrase
+硬上限：
 
-## 6. Information Priority
+- 24 个可见词元，除非是不可拆的专有名词或技术短语
 
-When compression is necessary, preserve information in this order:
+## 6. 信息优先级
 
-1. numbers, dates, percentages, money
-2. names, places, institutions
-3. predicate and event
-4. logic relation
-5. stance or modality
-6. modifiers
-7. rhetorical padding
+在必须压缩时，按以下顺序保留信息：
 
-If latency is high or ASR is unstable, keep only items 1-4.
+1. 数字、时间、日期、价格、百分比、金额
+2. 人名、地名、品牌、机构、平台、产品名
+3. 核心动作或事件
+4. 逻辑关系
+5. 判断、态度、强调
+6. 修饰信息
+7. 修辞性铺垫
 
-When readability would otherwise collapse, preserve a little more of items 5-6 instead of over-compressing into cryptic fragments.
+若实时延迟较高或识别不稳，至少保留前四项。
 
-When the action target, affected party, or practical outcome is central, preserve that extra layer of detail instead of collapsing the note into a bare headline.
+## 7. 必保语义元素
 
-When a claim depends on its reason, method, or consequence, preserve that supporting layer instead of reducing the note to a vague headline.
+只要原文中出现，系统应尽量保留：
 
-## 7. Required Semantic Elements
+- 谁 / 什么是主题
+- 做了什么 / 发生了什么
+- 为什么
+- 在什么条件下
+- 带来什么结果
+- 与什么相比
+- 什么时候
+- 数量多少
+- 讲话者是在陈述、判断、强调、举例、警告还是转折
 
-The system should try to preserve the following whenever present:
+## 8. 关键词规则
 
-- who did or wants what
-- what changed
-- why
-- under what condition
-- with what consequence
-- compared with what baseline
-- when
-- how much
-- whether the speaker is certain, doubtful, supportive, critical, warning, or proposing
+### 8.1 只记关键词，不记完整语法
 
-## 8. Core Logic Marker System
+- 优先保留名词、动词核心、结果词
+- 冠词、时态、低价值连接词默认省略
+- 不追求句法完整
 
-This project should prefer the following compact marker family as the **default business interpreting note system**:
+例如：
 
-- addition / and / also: `+`
-- action / direction / address / operate / lead to: `->`
-- place / affiliation / in / at / based in / worked for: `@`
-- contrast / however / although / but: `∥` or `but`
-- comparison greater / better / larger: `>`
-- comparison smaller / worse / less: `<`
-- uncertainty / problem / unresolved point: `?` (rare use only)
-- emphasis / key point: `❗`
-- equality / equivalent / same as: `=`
+- `it sold out globally in minutes`
+- 记为：`全球 数分钟售罄`
 
-Recommended supporting markers:
-
-- cause: `b/c` or `∵`
-- result / therefore: `->` or `∴`
-- parallel items: `/`
-- versus: `vs`
-- approximate: `≈`
-- more-or-equal: `≥`
-- less-or-equal: `≤`
-- not equal / mismatch: `≠`
-
-Rules:
-
-- prefer one consistent marker family within one session
-- do not mix too many synonymous markers
-- use symbols instead of full conjunction words when the relation is obvious
-- use `?` only on genuinely unclear tokens or relations that cannot be safely omitted
-
-## 8.1 Extended Symbol Inventory
-
-In addition to the default logic markers, the following symbols are allowed when they clearly improve recall speed:
-
-- `×` = wrong, bad, incorrect, rejected, notorious
-- `>` = more than, better than, surpass, increasingly
-- `<` = less than, fewer than, worse than, inferior to
-- `≥` = more than or equal to
-- `≤` = less than or equal to
-- `=` = equal, same as, match
-- `≠` = not equal, no match
-- `≈` = approximately, around
-- `∵` = because, due to
-- `∴` = therefore, consequently, as a result
-- `?` = question, doubt, unresolved issue, but should be used sparingly
-- `√` = correct, affirmative, agreed, supported
-- `☆` = excellent, best, model, important
-- `:` = say, speak, tell, declare, protest, such as, like
-- `○` = meeting, conference, seminar, negotiation
-- `∪` = agreement, accord, treaty, contract
-- `&` = together with, accompany, and
-- `~` = exchange, replace, mutual
-- `//` = stop, halt, suspend
-- `{ }` = include, within, enclosed set
-- `☺` = happy, pleased, delighted
-- `☹` = sad, regretful
-- `><` = confrontation, conflict
-
-Rules:
-
-- do not force symbols where a short word is clearer
-- prefer stable reuse of the same symbol family within one session
-- symbols should shorten recall time, not create a decoding puzzle
-
-## 9. Compression Rules
-
-The system should compress using the following rules:
-
-- omit articles: `a`, `an`, `the`
-- omit simple low-value function words: `of`, `for`, `to`, and similar fillers when meaning remains recoverable
-- omit tense marking and voice marking
-- omit repeated subject if locally recoverable
-- collapse long noun phrases into headword + key modifier
-- preserve center noun + core adjective only
-- avoid rewriting ideas into polished clauses
-- if content repeats, record the core only once
-- do not over-compress to the point that the note no longer preserves who did what, key stance, or main outcome
-- preserve short verbs and compact predicate structure when they are necessary for rereading
-- preserve compact object phrases and affected targets when they are necessary for rereading
-- preserve short support phrases for reason, method, and consequence when they are necessary for rereading
-
-Examples:
-
-- `It is a great honor for me to address you`
-  -> `honor -> speak`
+### 8.2 例子只记最小触发单位
 
-- `the most exciting, most dynamic, most interesting market`
-  -> `market: most exciting, dynamic, interesting`
-
-- `because demand in Europe has fallen sharply`
-  -> `b/c EU demand down sharp`
+例子不必完整记录，只要能唤起回忆即可。
 
-## 9.1 Abbreviation Rules
+例如：
 
-The system should use four main abbreviation strategies, in this priority order:
+- `女儿：I love Dad T`
+- `Apple fanboys`
+- `$8000 回到未来`
 
-### 1. Fixed established abbreviations first
+## 9. 符号与缩略系统
 
-- UN, UNICEF, UNESCO, APEC, ASEAN, GDP, GNP, WTO, IMF, ROI, JV
-- PG = Procter & Gamble
-- CN = China
-- US = United States
-- GD = Guangdong
-- Pres = President
+系统应优先使用稳定、少量、可复用的符号。
 
-### 2. Time / number shorthand
+### 9.1 核心符号
 
-- `y` = year
-- `m` = month
-- `d` = day
-- `yr` / `yrs` = year / years
-- `LY` = last year
-- `NY` = next year
-- `5YP` = Five-Year Plan
-- `bln` = billion
-- `mln` = million
-- keep `RMB` unchanged
-- keep all numbers in Arabic numerals
+- `→`：结果、推进、引申、导致
+- `=`：定义、解释、等同、类比
+- `≈`：近似、类似
+- `xN`：次数
+- `↑`：上升、增加、强化
+- `↓`：下降、减少、削弱
+- `∵`：原因
+- `∴`：因此
+- `vs`：对比
+- `+`：并列增加
+- `/`：并列压缩
+- `⚠`：强调、异常、风险、保留判断
+- `★`：关键判断、核心地位
+- `⊕`：补充维度、新方向
 
-### 3. Constructed English shorthand
+### 9.2 使用规则
 
-Use stable business-style clipping:
+- 同一会话内尽量保持同一套符号
+- 符号数量要少，避免一段里混入太多异构标记
+- 能用符号清楚表达时，优先不用完整连接词
+- 若短词比符号更清楚，则用短词
 
-- `innov` = innovation
-- `cat` = category
-- `prod` = product
-- `biz` = business
-- `oper` = operate
-- `run` = run / operate
-- `resp` = responsibility
-- `info` = information
+## 10. 数字与专名规则
 
-Allowed methods:
+### 10.1 数字必须突出
 
-- retain first few letters
-- retain first and last letters when still recoverable
-- remove vowels if the result stays readable: `bcs`, `blv`, `rgrds`
-- preserve first syllable or stable stem when safer than over-compression
+数字信息是高优先级锚点，应尽量单独成行或置于醒目位置。
 
-### 4. Constructed Chinese shorthand
+推荐写法：
 
-Chinese compression is allowed when stable and decodable on reread:
+- 时间：`'88`、`'11`
+- 价格：`$160`
+- 数量：`900万双`
+- 金额：`12亿美元`
+- 时长：`30年`
+- 范围：`仅美国`
 
-- `社保`
-- `野区`
-- `国标`
-- `粤府`
-- `物精`
-- `改开`
-- `4M`
+### 10.2 专有名词尽量保留原文或固定简称
 
-Rules:
+品牌、鞋名、人名、平台、机构可保留原文或固定缩略，只要复述时能一眼识别。
 
-- only shorten when the result is still easy to recover
-- preserve one stable abbreviation per repeated concept in a session
-- names, money, percentages, and dates must stay more exact than ordinary nouns
+例如：
 
-## 9.2 Time and Sequence Shortcuts
+- `AJ3`
+- `Black Cement`
+- `Nike`
+- `eBay`
+- `MJ`
 
-Compact time marks are encouraged:
+允许中英混记，但同类信息要统一。
 
-- `LY` or `y-1` = last year
-- `NY` or `y+1` = next year
-- `m+1` = next month
-- `d-1` = previous day
+## 11. 逻辑显性化规则
 
-For fixed dates, preserve direct compact form:
+笔记不仅要记录“说了什么”，更要记录“这些点怎么连起来”。
 
-- `Aug 8,1988`
-- `2025-27`
+系统应显性标出以下逻辑：
 
-## 10. Language Style
+- 因果：`排队数日 → 开售即空`
+- 递进：`不止热卖 → 形成转售市场`
+- 举例：`例：$8000 回到未来`
+- 转折：`但 $8000属特例`
+- 结论：`转售市场绝非小众`
+- 引申：`球鞋+数据+Nike → 电商未来`
 
-The primary style for this project is:
+## 12. 事实与评价分离
 
-- business/conference consecutive note style
-- English-heavy shorthand for English speeches
-- mixed shorthand allowed when it improves recall
+系统应尽量区分客观事实和讲话者判断。
 
-Default mode:
+推荐做法：
 
-- `mixed`, but biased toward the user-provided business-note system above
+- 事实：直接记录
+- 判断：用 `★`、`⚠` 或短评词标出
 
-That means:
+例如：
 
-- use Chinese keywords if shorter and safer
-- use English abbreviations when they are standard or efficient
-- do not force fully Chinese or fully English output
-- keep named entities stable
+- `复刻4次`
+- `★ 史重球鞋`
+- `12个月 900万双`
+- `⚠ 保守估计`
 
-## 11. Entity Handling
+## 13. 版面模板
 
-Entities must be treated as anchors.
+系统在生成一段笔记时，优先按以下顺序组织：
 
-Rules:
+- `主题 / 人物 / 事件`
+- `核心判断`
+- `时间`
+- `关键数据`
+- `原因`
+- `结果`
+- `例子`
+- `转折 / 例外`
+- `结论 / 引申`
 
-- do not over-compress personal names
-- preserve numbers exactly when confidence is high
-- preserve currency unit, time unit, and percentage sign
-- keep one stable short form per entity within a session
-- if ASR confidence is low, mark uncertain entity with `?` only when that uncertainty is important to preserve
+不是每段都必须全部出现，但若原文包含这些层次，笔记应尽量保留其顺序和关系。
 
-Examples:
+## 14. 风格要求
 
-- `International Monetary Fund` -> `IMF`
-- `World Trade Organization` -> `WTO`
-- `3.8 billion RMB` -> `3.8 bln RMB`
-- uncertain name -> `Miller?`
+最终笔记风格应满足以下六点：
 
-## 12. Number Policy
+- `短`：尽量不用完整句
+- `硬`：优先记名词、数字、逻辑骨架
+- `快`：大量使用稳定缩略和符号
+- `清`：一行一意，层次分明
+- `准`：数字、时间、专名不能错
+- `活`：例子记提示词，不死抄原文
 
-Numbers are high priority and should be visually salient.
-
-Rules:
-
-- preserve exact number if available
-- use normalized short forms when safe
-- keep sign and unit
-- do not rewrite relative comparisons into vague words
-
-Examples:
-
-- `35 percent` -> `35%`
-- `between 2025 and 2027` -> `2025-27`
-- `an increase of 2.4 million` -> `+2.4 mln`
-- `less than 10 days` -> `<10d`
-- `thirty four billion RMB` -> `34 bln RMB`
-
-## 13. Hierarchy Rules
-
-Hierarchy should reflect discourse structure.
-
-Allowed structures:
-
-- top line for main point
-- indented line for support
-- sibling lines for enumeration
-- isolated line for warning or question
-
-Example:
+## 15. 好输出示例
 
 ```text
-PG run 30yrs
-  @ GD
-  est Aug 8,1988
+AJ3 黑水泥
+★ 史重球鞋
+'88 首发
+→ Nike 营销开端
+→ 撑 AJ 线 / 救 Nike
+= 球鞋界 iPhone
+x4 复刻
+名流上脚
 
-CN
-2nd largest biz ex US
-Last yr turnover: 34 bln RMB
+众人：球鞋
+⊕ 球鞋+数据+Nike
+→ 电商未来
+
+'11 末次发
+零售价：$160
 ```
-
-Hierarchy constraints:
-
-- maximum indentation depth: 2
-- avoid deeply nested tree structures
-- when structure is unclear, prefer flat lines over false hierarchy
-
-## 14. Update Behavior for Streaming
-
-The system should produce notes in passes.
-
-Pass 1: provisional fragment
-
-- low latency
-- may be incomplete
-- focus on anchor words and relation
-
-Pass 2: stabilization
-
-- fill in missing predicate or relation
-- normalize shorthand
-- merge duplicates
-
-Pass 3: correction
-
-- revise prior line if ASR changed materially
-- avoid unnecessary churn
-
-Update rules:
-
-- do not rewrite stable lines unless needed
-- prefer append or patch, not full re-render
-- if a line is revised, preserve visual continuity when possible
-
-## 15. Anti-Summary Rules
-
-The system must avoid drifting into generic summarization.
-
-Reject these tendencies:
-
-- explanatory full sentences
-- discourse-polished transitions
-- abstract labels with no anchors
-- omitting numbers in favor of vague summaries
-- replacing speaker stance with neutral wording
-- complete sentence copying from the source
-- keyword dumping with too little relation or predicate information to reconstruct meaning
-- excessive shortening that removes the policy target, business object, or result anchor
-- over-pruning of support detail that makes adjacent points hard to distinguish
-
-Bad:
 
 ```text
-The speaker discussed the challenges and opportunities involved in the reform process.
-```
+全球 数分钟售罄
+→ 发售前 门店外 排队数日
 
-Good:
+发售后数分
+数千双 登 eBay
+价：原价 2-3 倍
+
+现状：每周六 常上演
+Nike 打造球鞋圈市场
+受众：sneakerheads
+
+★ 核心人群
+≈ Apple fanboys
+例：$8000 回到未来
+
+但 $8000属特例
+∴ 转售市场绝非个例
+历经30年发展
+```
 
 ```text
-reform
-+ opp
-- challenge
+现：球鞋成瘾现象盛行
+近12个月
+仅美国 转售 900万+双
+交易额 12亿美元
+⚠ 保守估计
 
-key:
-funding / timing / local buy-in
+本人：球鞋爱好者
+藏品：约250双
+但 仍属小玩家
+
+37岁 典型鞋迷
+儿时 渴望AJ
+母亲不买
+有收入后 立买AJ
+
+经历转折
+创3家公司后
+任战略顾问
+初期 不懂数据
+后 学会 / 感兴趣
+
+萌生想法
+搜集球鞋数据
+→ 研究 / 自娱
 ```
-
-## 16. Confidence Marking
-
-The system may expose uncertainty compactly, but should avoid doing so unless necessary.
-
-Preferred markers:
-
-- uncertain token: `?` (rare)
-- low-confidence relation: `-> ?` (rare)
-- unresolved number: `20?` (rare)
-- possible name: `Zhang?` (rare)
-
-Rules:
-
-- mark uncertainty only where absolutely needed
-- do not flood the note with confidence labels
-- uncertain marks should be easy to remove on later updates
-- ordinary risk, pressure, difficulty, or pending discussion should usually be written directly without `?`
-
-## 17. Domain Adaptation Hooks
-
-The system should support session-level customization:
-
-- glossary
-- user abbreviation table
-- preferred note language mode
-- forbidden expansions
-- preferred symbol set
-- speaker/topic profile
-
-Examples of custom mappings:
-
-- `artificial intelligence` -> `AI`
-- `carbon border adjustment mechanism` -> `CBAM`
-- `supply chain resilience` -> `SC resil`
-
-## 18. Output Schema
-
-Recommended internal schema for each rendered line:
-
-```json
-{
-  "id": "line_102",
-  "text": "if rates up -> housing pressure",
-  "status": "stable",
-  "indent": 0,
-  "speaker": "spk1",
-  "source_span_ms": [182000, 188400],
-  "confidence": 0.83,
-  "revision_of": null,
-  "semantic_type": "condition_result"
-}
-```
-
-Allowed `status` values:
-
-- `draft`
-- `stable`
-- `revised`
-
-Suggested `semantic_type` values:
-
-- `claim`
-- `support`
-- `contrast`
-- `condition`
-- `cause`
-- `result`
-- `number_anchor`
-- `question`
-- `stance`
-
-## 19. Prompting Guidance for Generation
-
-The note generator prompt should explicitly instruct:
-
-- write interpreter-style notes, not summary prose
-- use one idea per line
-- preserve numbers and names
-- show logic with symbols
-- compress, but keep enough actor/action/outcome information for rereading
-- preserve object/target/result information when omission would make the note vague
-- preserve reason/method/consequence information when omission would make the point incomplete
-- prefer memory cues over grammatical completeness
-- output partial notes early and refine later
-- prefer the business-note shorthand system in sections 4-9
-
-## 20. Evaluation Criteria
-
-The output should be evaluated on:
-
-- recall usefulness
-- logical clarity
-- compression quality
-- readability on delayed reread
-- object/action clarity
-- support-detail clarity
-- number retention
-- entity retention
-- low-latency usefulness
-- stability under streaming revision
-- similarity to interpreter note habits
-
-Suggested scoring questions:
-
-- Can a trained interpreter reconstruct the message from the notes?
-- Are key numbers and names preserved?
-- Is the relation between ideas explicit?
-- Are lines short enough to scan instantly?
-- Does the output avoid summary prose?
-
-## 21. V1 Product Scope Recommendation
-
-For a practical v1, the system should support:
-
-- single active speaker priority
-- 1-3 second update cadence
-- mixed shorthand mode with business-note bias
-- glossary injection
-- line revision for ASR corrections
-- optional side-by-side transcript and notes
-
-The system should not require in v1:
-
-- handwriting simulation
-- personalized symbol learning from scratch
-- perfect diarization
-- fully automatic bilingual reformulation
-
-## 22. Example Gold Outputs
-
-### Example A
-
-Source:
-
-`Procter & Gamble has been operating for thirty years. And we started here in Guangdong, August eight, nineteen eighty eight.`
-
-Target notes:
-
-```text
-PG run 30yrs
-@ GD
-est Aug 8,1988
-```
-
-### Example B
-
-Source:
-
-`China is our second largest business outside the US. Last year we turned over thirty four billion RMB.`
-
-Target notes:
-
-```text
-CN:
-2nd largest biz ex US
-Last yr turnover: 34 bln RMB
-```
-
-### Example C
-
-Source:
-
-`It is my great honor to operate here in China.`
-
-Target notes:
-
-```text
-honor -> oper @ CN
-```
-
-### Example D
-
-Source:
-
-`If we fail to reach an agreement this month, the project could be delayed by at least six months, and that would increase costs significantly.`
-
-Target notes:
-
-```text
-if no deal / this mo
--> proj delay >=6m
--> cost up sig
-```
-
-## 23. Acceptance Rule
-
-If output can be read as a normal written note for outsiders, it is probably not compressed enough.
-
-If output helps a listener reconstruct meaning quickly with minimal reading, it is closer to the target.
