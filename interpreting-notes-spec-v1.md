@@ -152,7 +152,7 @@ This project should prefer the following compact marker family as the **default 
 - contrast / however / although / but: `∥` or `but`
 - comparison greater / better / larger: `>`
 - comparison smaller / worse / less: `<`
-- uncertainty / problem / unresolved point: `?`
+- uncertainty / problem / unresolved point: `?` (rare use only)
 - emphasis / key point: `❗`
 - equality / equivalent / same as: `=`
 
@@ -172,7 +172,7 @@ Rules:
 - prefer one consistent marker family within one session
 - do not mix too many synonymous markers
 - use symbols instead of full conjunction words when the relation is obvious
-- use `?` only on the uncertain token or uncertain relation
+- use `?` only on genuinely unclear tokens or relations that cannot be safely omitted
 
 ## 8.1 Extended Symbol Inventory
 
@@ -188,7 +188,7 @@ In addition to the default logic markers, the following symbols are allowed when
 - `≈` = approximately, around
 - `∵` = because, due to
 - `∴` = therefore, consequently, as a result
-- `?` = question, doubt, unresolved issue
+- `?` = question, doubt, unresolved issue, but should be used sparingly
 - `√` = correct, affirmative, agreed, supported
 - `☆` = excellent, best, model, important
 - `:` = say, speak, tell, declare, protest, such as, like
@@ -344,7 +344,7 @@ Rules:
 - preserve numbers exactly when confidence is high
 - preserve currency unit, time unit, and percentage sign
 - keep one stable short form per entity within a session
-- if ASR confidence is low, mark uncertain entity with `?`
+- if ASR confidence is low, mark uncertain entity with `?` only when that uncertainty is important to preserve
 
 Examples:
 
@@ -463,20 +463,21 @@ funding / timing / local buy-in
 
 ## 16. Confidence Marking
 
-The system may expose uncertainty compactly.
+The system may expose uncertainty compactly, but should avoid doing so unless necessary.
 
 Preferred markers:
 
-- uncertain token: `?`
-- low-confidence relation: `-> ?`
-- unresolved number: `20?`
-- possible name: `Zhang?`
+- uncertain token: `?` (rare)
+- low-confidence relation: `-> ?` (rare)
+- unresolved number: `20?` (rare)
+- possible name: `Zhang?` (rare)
 
 Rules:
 
-- mark uncertainty only where needed
+- mark uncertainty only where absolutely needed
 - do not flood the note with confidence labels
 - uncertain marks should be easy to remove on later updates
+- ordinary risk, pressure, difficulty, or pending discussion should usually be written directly without `?`
 
 ## 17. Domain Adaptation Hooks
 

@@ -53,7 +53,7 @@ Primary preferred markers:
 - contrast: ∥ or but
 - comparison greater / better / larger: >
 - comparison smaller / worse / less: <
-- uncertainty / unresolved point: ?
+- uncertainty / unresolved point: ? (use only in rare cases)
 - emphasis / key point: ❗
 - equal / equivalent: =
 
@@ -90,11 +90,12 @@ Professional note-taking rules:
 - use vertical stacked note style, not prose
 - keep each line to a single information unit
 - use indentation only for support, purpose, or subordinate structure
-- if content is uncertain, mark only the uncertain token with ?
+- if content is uncertain, avoid `?` unless the uncertainty is truly important and cannot be resolved
 - do not beautify wording into full written Chinese or English
 - do not turn the output into translation, subtitle, or minutes
 - when forced to choose, prefer understandable compressed notes over ultra-short cryptic notes
 - allow moderately fuller note lines when the source contains policy stance, cause-effect chain, or multi-part claims
+- default to no question marks in notes unless a key token is genuinely unclear
 
 Line-shaping rules:
 - prefer compressed predicate structure over bare noun skeleton when noun skeleton is too vague
@@ -197,6 +198,7 @@ Anti-summary rules:
 - no complete English sentence copying unless unavoidable
 - no keyword dumping without enough relations to reconstruct meaning
 - no excessive shortening that removes the policy target, business object, or result anchor
+- no casual use of `?` for ordinary risk, pressure, difficulty, or open issues
 
 Good output examples:
 PG run 30yrs
@@ -222,7 +224,8 @@ Bad output example:
 It is a great honor for me to operate here in China and our business in China is our second largest business outside the United States.
 
 When uncertain:
-- mark uncertain token with ?
+- avoid `?` by default
+- use `?` only for genuinely unclear names, numbers, or critical terms
 - keep uncertainty local
 - do not flood the note with warnings
 
@@ -331,7 +334,7 @@ Prioritize:
 
 Allowed:
 - incomplete lines
-- local uncertainty markers
+- local uncertainty markers only when absolutely necessary
 
 Avoid:
 - over-formatting
