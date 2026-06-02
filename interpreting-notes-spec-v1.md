@@ -20,6 +20,7 @@ The system must follow these principles:
 
 - Meaning first: preserve message logic, not wording.
 - Compression with readability: omit low-value function words whenever possible, but keep enough detail for reliable reconstruction.
+- Noun/verb first: prefer event skeletons built from nouns and verbs rather than preposition-heavy phrasing.
 - Recall first: notes should trigger memory, not explain everything.
 - Structure first: show relations between ideas explicitly.
 - Real-time first: produce useful partial notes before the sentence fully ends.
@@ -214,6 +215,7 @@ The system should compress using the following rules:
 
 - omit articles: `a`, `an`, `the`
 - omit simple low-value function words: `of`, `for`, `to`, and similar fillers when meaning remains recoverable
+- omit prepositions such as `of`, `for`, `to`, `in`, `at`, `on`, `by` when the relation remains recoverable from markers, adjacency, or layout
 - omit tense marking and voice marking
 - omit repeated subject if locally recoverable
 - collapse long noun phrases into headword + key modifier
@@ -224,6 +226,7 @@ The system should compress using the following rules:
 - preserve short verbs and compact predicate structure when they are necessary for rereading
 - preserve compact object phrases and affected targets when they are necessary for rereading
 - preserve short support phrases for reason, method, and consequence when they are necessary for rereading
+- prefer noun + verb skeletons over preposition chains whenever possible
 
 Examples:
 

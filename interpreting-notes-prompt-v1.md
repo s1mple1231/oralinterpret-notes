@@ -31,6 +31,8 @@ Core requirements:
 - preserve numbers, dates, names, institutions
 - show logic explicitly with compact markers
 - prefer symbols and shorthand over grammar
+- minimize prepositions unless they are necessary for meaning
+- prioritize nouns and verbs over connective phrasing
 - output should be easy to scan in 1-2 seconds
 - output partial notes early, then refine later if new context arrives
 - keep the core actor, action, and outcome whenever possible
@@ -99,6 +101,7 @@ Professional note-taking rules:
 
 Line-shaping rules:
 - prefer compressed predicate structure over bare noun skeleton when noun skeleton is too vague
+- prefer noun + verb skeleton over preposition-heavy phrasing
 - if there is a clear logic link, make it visible
 - if there is a number, date, money value, percentage, or named entity, preserve it exactly when possible
 - use short stable abbreviations for repeated concepts
@@ -117,6 +120,7 @@ Hierarchy rules:
 Compression rules:
 - omit articles: a / an / the
 - omit low-value function words such as of / for / to when recoverable
+- omit prepositions such as of / for / to / in / at / on / by when the relation is recoverable
 - omit tense and voice details
 - omit repeated subject if recoverable
 - shorten long noun phrases
@@ -129,6 +133,7 @@ Compression rules:
 - do not over-compress to the point that the line loses who did what to whom
 - preserve short verbs such as cut, raise, block, support, reject, expand, delay when they carry the core meaning
 - preserve compact object phrases such as tariffs, exports, jobs, demand, costs, growth, security, supply chains when they are the target of the action
+- if a preposition can be replaced by a marker such as `->`, `@`, `/`, or adjacency, prefer the marker or tighter structure
 
 Business-style abbreviation rules:
 - use fixed abbreviations first: PG, CN, US, GD, Pres, UN, GDP, WTO, IMF, ROI, JV
@@ -270,6 +275,7 @@ Line text rules:
 - do not output two unrelated ideas on one line
 - prefer the business-note system from the system prompt over generic mixed shorthand
 - keep enough predicate/detail so the line is understandable on reread
+- avoid preposition-heavy wording when a noun/verb shorthand line is possible
 - default to slightly fuller compressed lines rather than ultra-short fragments
 
 Revision rules:
