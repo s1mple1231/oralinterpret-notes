@@ -65,9 +65,60 @@ type SessionEvent = {
 type AudioMode = "mic" | "system" | "mic_system"
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "")
+const TRANSCRIPT_FILLER_TOKENS = new Set([
+  "嗯",
+  "啊",
+  "呃",
+  "哦",
+  "唔",
+  "哎",
+  "诶",
+  "欸",
+  "对",
+  "好",
+  "是",
+  "行",
+  "好的",
+  "对的",
+  "是的",
+  "ok",
+  "okay",
+  "yeah",
+  "uh",
+  "um",
+  "hmm",
+  "mm",
+  "mhm",
+  "uhhuh",
+])
 
 function apiUrl(pathname: string) {
   return API_BASE_URL ? `${API_BASE_URL}${pathname}` : pathname
+}
+
+function shouldHideTranscriptText(text: string) {
+  const trimmed = text.trim()
+  if (!trimmed) {
+    return true
+  }
+
+  const tokens = trimmed
+    .toLowerCase()
+    .replace(/[，。！？、；：,.!?/\\()[\]{}"'`~\-]+/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+
+  if (!tokens.length) {
+    return true
+  }
+
+  const collapsed = tokens.join("")
+  if (/^(嗯|啊|呃|哦|唔|哎|诶|欸)+$/.test(collapsed)) {
+    return true
+  }
+
+  return tokens.every((token) => TRANSCRIPT_FILLER_TOKENS.has(token))
 }
 
 function floatToInt16(float32Array: Float32Array) {
@@ -536,7 +587,9 @@ export default function App() {
     }
   }, [])
 
-  const transcriptItems = Array.from(transcripts.values()).sort((a, b) => a.order - b.order)
+  const transcriptItems = Array.from(transcripts.values())
+    .filter((item) => !shouldHideTranscriptText(item.text || ""))
+    .sort((a, b) => a.order - b.order)
   const noteItems = Array.from(notes.values()).sort((a, b) => a.order - b.order)
 
   return (
