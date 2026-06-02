@@ -37,7 +37,7 @@ const DEFAULT_LANGUAGE = process.env.TRANSCRIPTION_LANGUAGE || "zh";
 const DEFAULT_ASR_PROVIDER = process.env.ASR_PROVIDER || "openai";
 const DEFAULT_NOTES_PROVIDER = process.env.NOTES_PROVIDER || "openai";
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_MS || 30 * 60 * 1000);
-const NOTES_DRAFT_DEBOUNCE_MS = Number(process.env.NOTES_DRAFT_DEBOUNCE_MS || 650);
+const NOTES_DRAFT_DEBOUNCE_MS = Number(process.env.NOTES_DRAFT_DEBOUNCE_MS || 450);
 const NOTES_DRAFT_MIN_CHARS = Number(process.env.NOTES_DRAFT_MIN_CHARS || 24);
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
