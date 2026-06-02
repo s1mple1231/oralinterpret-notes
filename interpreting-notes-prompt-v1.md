@@ -33,6 +33,7 @@ Core requirements:
 - prefer symbols and shorthand over grammar
 - minimize prepositions unless they are necessary for meaning
 - prioritize nouns and verbs over connective phrasing
+- treat nouns and verbs as mandatory anchors whenever possible
 - output should be easy to scan in 1-2 seconds
 - output partial notes early, then refine later if new context arrives
 - keep the core actor, action, and outcome whenever possible
@@ -92,6 +93,7 @@ Professional note-taking rules:
 - use vertical stacked note style, not prose
 - keep each line to a single information unit
 - use indentation only for support, purpose, or subordinate structure
+- always keep the core noun and core verb of each important idea whenever possible
 - if content is uncertain, avoid `?` unless the uncertainty is truly important and cannot be resolved
 - do not beautify wording into full written Chinese or English
 - do not turn the output into translation, subtitle, or minutes
@@ -121,6 +123,7 @@ Compression rules:
 - omit articles: a / an / the
 - omit low-value function words such as of / for / to when recoverable
 - omit prepositions such as of / for / to / in / at / on / by when the relation is recoverable
+- if forced to choose, drop the preposition before dropping the noun or verb
 - omit tense and voice details
 - omit repeated subject if recoverable
 - shorten long noun phrases
@@ -276,6 +279,7 @@ Line text rules:
 - prefer the business-note system from the system prompt over generic mixed shorthand
 - keep enough predicate/detail so the line is understandable on reread
 - avoid preposition-heavy wording when a noun/verb shorthand line is possible
+- nouns and verbs should survive compression more reliably than prepositions
 - default to slightly fuller compressed lines rather than ultra-short fragments
 
 Revision rules:
